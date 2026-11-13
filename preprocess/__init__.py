@@ -1,0 +1,1 @@
+"""Optional image preprocessing pipeline."""
