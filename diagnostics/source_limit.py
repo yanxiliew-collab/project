@@ -296,6 +296,11 @@ def _edge_spread(full_frame: np.ndarray, bbox: tuple[int, int, int, int]) -> dic
     valid_vertical = [row for row in vertical_edges if row["valid"]]
     valid_horizontal = [row for row in horizontal_edges if row["valid"]]
     return {
+        "measurement_source": "original full-frame grayscale; no interpolation, thresholding, or sharpening",
+        "edge_direction_definition": {
+            "vertical_edges": "edge runs approximately along y; sigma is fitted along x",
+            "horizontal_edges": "edge runs approximately along x; sigma is fitted along y",
+        },
         "vertical_edges": vertical_edges,
         "horizontal_edges": horizontal_edges,
         "vertical_sigma_px": float(np.median([row["sigma_px"] for row in valid_vertical])) if valid_vertical else None,
@@ -305,6 +310,36 @@ def _edge_spread(full_frame: np.ndarray, bbox: tuple[int, int, int, int]) -> dic
         "valid_vertical_count": len(valid_vertical),
         "valid_horizontal_count": len(valid_horizontal),
     }
+
+
+def _edge_spread_overlay(
+    full_frame: np.ndarray,
+    bbox: tuple[int, int, int, int],
+    path: Path,
+) -> None:
+    overlay = full_frame.copy()
+    x0, y0, x1, y1 = bbox
+    color_vertical = (0, 0, 255)
+    color_horizontal = (255, 0, 0)
+    cv2.rectangle(overlay, (x0, y0), (x1, y1), (0, 255, 255), 3)
+    vertical = [
+        ("left outer", x0),
+        ("center divider", (x0 + x1) // 2),
+        ("right outer", x1),
+    ]
+    horizontal = [("top outer", y0), ("bottom outer", y1)]
+    for label, x in vertical:
+        cv2.line(overlay, (x, y0 + 10), (x, y1 - 10), color_vertical, 2)
+        cv2.putText(overlay, f"{label} | sample x", (x + 8, max(30, y0 - 20)),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, color_vertical, 2, cv2.LINE_AA)
+    for label, y in horizontal:
+        cv2.line(overlay, (x0 + 10, y), (x1 - 10, y), color_horizontal, 2)
+        cv2.putText(overlay, f"{label} | sample y", (x0 + 8, y + 28),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, color_horizontal, 2, cv2.LINE_AA)
+    cv2.putText(overlay, "vertical edge: fit along x; horizontal edge: fit along y",
+                (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2, cv2.LINE_AA)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    cv2.imwrite(str(path), overlay)
 
 
 def _background_edge_spread(full_frame: np.ndarray, roi: tuple[int, int, int, int]) -> dict[str, Any]:
@@ -348,6 +383,10 @@ def _flow_summary(frames: dict[int, np.ndarray], bboxes: dict[int, tuple[int, in
             "trail_px_at_1_60": float(np.mean(magnitude) * 30.0 * (1.0 / 60.0)),
             "trail_px_at_1_120": float(np.mean(magnitude) * 30.0 * (1.0 / 120.0)),
             "trail_px_at_1_250": float(np.mean(magnitude) * 30.0 * (1.0 / 250.0)),
+            "trail_median_px_at_1_60": float(np.median(magnitude) * 30.0 * (1.0 / 60.0)),
+            "trail_median_px_at_1_120": float(np.median(magnitude) * 30.0 * (1.0 / 120.0)),
+            "trail_median_px_at_1_250": float(np.median(magnitude) * 30.0 * (1.0 / 250.0)),
+            "magnitude_statistic_for_trail": "mean and median are both reported; legacy trail_px_at_* uses mean",
             "trail_formula": "flow_px_per_frame * fps_30 * exposure_seconds; previous version omitted fps_30",
         })
     return rows
@@ -447,23 +486,52 @@ def _ocr_probe(
         }
 
     frame_results = {}
+    scaled_results: dict[str, dict[str, Any]] = {}
     for index, bbox in sorted(bboxes_for_ocr.items()):
         frame_results[str(index)] = run_worker([
             "--video", str(VIDEO), "--frame", str(index),
             "--bbox", *(str(value) for value in bbox),
         ])
+        for scale in (2, 3):
+            name = f"raw_frames_{scale}x_bicubic"
+            scaled_results.setdefault(name, {})[str(index)] = run_worker([
+                "--video", str(VIDEO), "--frame", str(index),
+                "--bbox", *(str(value) for value in bbox),
+                "--scale", str(scale),
+            ])
     result["available"] = any(row.get("available") for row in frame_results.values())
     result["inputs"]["raw_frames_350_385"] = {"count": len(raw_crops), "frames": frame_results}
+    for name, frames in scaled_results.items():
+        result["inputs"][name] = {
+            "count": len(frames),
+            "frames": frames,
+            "diagnostic_only": True,
+            "visual_output": False,
+            "resize": "bicubic OCR input only; no saved final image",
+        }
+    canonical_single = cv2.resize(
+        raw_crops[max(raw_crops)],
+        (450, 300),
+        interpolation=cv2.INTER_AREA,
+    )
+    canonical_single_path = output / "ocr_control_canonical_single.png"
+    cv2.imwrite(str(canonical_single_path), canonical_single)
     existing_paths = {
-        "best_frame": ROOT / "outputs" / "contrast_only" / "best_frame.png",
-        "median": ROOT / "outputs" / "road_signs" / "dynamic_sign" / "dynamic_sign_median.png",
-        "contrast_after_fusion": ROOT / "outputs" / "contrast_only" / "contrast_after_fusion.png",
+        "canonical_single_no_fusion": canonical_single_path,
+        "canonical_median_no_clahe": ROOT / "outputs" / "road_signs" / "dynamic_sign" / "dynamic_sign_median.png",
+        "full_pipeline_contrast_after_fusion": ROOT / "outputs" / "contrast_only" / "contrast_after_fusion.png",
     }
     for name, path in existing_paths.items():
         result["inputs"][name] = {
             "path": str(path.relative_to(ROOT)),
             "available": path.exists(),
             "result": run_worker(["--image", str(path)]) if path.exists() else None,
+            "diagnostic_only": name == "canonical_single_no_fusion",
+            "controls": {
+                "geometry": "canonical 450x300" if name != "full_pipeline_contrast_after_fusion" else "existing pipeline output",
+                "fusion": name != "canonical_single_no_fusion",
+                "clahe": name == "full_pipeline_contrast_after_fusion",
+            },
         }
     return result
     if shutil.which("python") is None:
@@ -600,6 +668,8 @@ def run() -> dict[str, Any]:
         edge_rows.append({"frame": index, "roi": list(bboxes[index]), **_edge_spread(frames[index], bboxes[index])})
         size_rows.append({"frame": index, "roi": list(bboxes[index]), **_text_size(crop)})
     background_edge = _background_edge_spread(frames[385], BACKGROUND_ROI)
+    overlay_path = OUT / "edge_spread_overlay_frame_385.png"
+    _edge_spread_overlay(frames[385], bboxes[385], overlay_path)
     flow_rows = _flow_summary(frames, bboxes)
 
     existing = {
@@ -637,9 +707,40 @@ def run() -> dict[str, Any]:
         "edge_spread": {
             "per_frame": edge_rows,
             "background_frame_385": {"roi": list(BACKGROUND_ROI), **background_edge},
+            "overlay": str(overlay_path.relative_to(ROOT)),
+            "quality_checks": {
+                "interpolation": "none; profiles read directly from original full-frame pixels",
+                "binarization": "none; erf fit uses grayscale intensity",
+                "sharpening": "none",
+                "coordinate_risk": "bbox outer edges and midpoint divider are integer diagnostic coordinates, not calibrated edge landmarks",
+                "anisotropy_evidence": "directional difference is observed but not causally attributed until axis-aligned edge spread is independently confirmed",
+            },
         },
         "motion_blur": {
             "per_transition": flow_rows,
+            "statistical_convention": {
+                "median_range_px_per_frame": [
+                    float(np.min([row["median_magnitude_px"] for row in flow_rows])),
+                    float(np.max([row["median_magnitude_px"] for row in flow_rows])),
+                ],
+                "mean_range_px_per_frame": [
+                    float(np.min([row["mean_magnitude_px"] for row in flow_rows])),
+                    float(np.max([row["mean_magnitude_px"] for row in flow_rows])),
+                ],
+                "trail_ranges_by_exposure": {
+                    exposure: {
+                        "mean_px": [
+                            float(np.min([row[f"trail_px_at_{suffix}"] for row in flow_rows])),
+                            float(np.max([row[f"trail_px_at_{suffix}"] for row in flow_rows])),
+                        ],
+                        "median_px": [
+                            float(np.min([row[f"trail_median_px_at_{suffix}"] for row in flow_rows])),
+                            float(np.max([row[f"trail_median_px_at_{suffix}"] for row in flow_rows])),
+                        ],
+                    }
+                    for exposure, suffix in (("1/60", "1_60"), ("1/120", "1_120"), ("1/250", "1_250"))
+                },
+            },
             "direction_method": "directional evidence from radial spectrum only; no unique PSF claimed",
         },
         "text_size": {"per_frame": size_rows},
@@ -650,7 +751,7 @@ def run() -> dict[str, Any]:
         "limitations": [
             "Exposure time is unavailable; 1/60, 1/120, and 1/250 trail estimates are scenarios, not measurements.",
             "The HSV bbox is a measurement ROI detector, not a claim that HSV is a general detector.",
-            "Edge spread uses intensity profiles through strongest gradients and is an estimate, not a calibrated optical MTF.",
+            "Edge spread uses fixed diagnostic coordinates and raw grayscale intensity profiles; anisotropy remains unconfirmed until axis-aligned edge spread is independently checked.",
             "OCR ground truth is an assumption from the requested strings; no user confirmation was available.",
         ],
     }
@@ -686,6 +787,7 @@ def write_report(data: dict[str, Any]) -> None:
     strokes = [row["estimated_stroke_width_px"] for row in sizes if row["estimated_stroke_width_px"] is not None]
     ocr_inputs = data["ocr"].get("inputs", {})
     ocr_summary = {}
+    ocr_hit_table: dict[str, dict[str, bool]] = {}
     for name, payload in ocr_inputs.items():
         rows = list(payload.get("frames", {}).values()) if "frames" in payload else ([payload["result"]] if payload.get("result") else [])
         valid_rows = [row for row in rows if row.get("available")]
@@ -696,11 +798,17 @@ def write_report(data: dict[str, Any]) -> None:
             "big_hit_count": float(np.mean([row.get("big_text_hit_count", 0) for row in valid_rows])) if valid_rows else None,
             "small_hit_count": float(np.mean([row.get("small_text_hit_count", 0) for row in valid_rows])) if valid_rows else None,
         }
+        for truth in data["ground_truth"]["strings"]:
+            values = [bool(row.get("hits", {}).get(truth)) for row in valid_rows]
+            ocr_hit_table.setdefault(name, {})[truth] = bool(any(values))
+    motion_stats = data["motion_blur"].get("statistical_convention", {})
+    median_flow_range = motion_stats.get("median_range_px_per_frame")
+    mean_flow_range = motion_stats.get("mean_range_px_per_frame")
     report = f"""# 原始資訊上限診斷：`data/road.mp4`
 
 ## 一頁摘要
 
-- 診斷範圍：原始 frame 350–385；每個 ROI 都以原始 3840×2160 影格像素量測，沒有使用 canonical 450×300、上採樣或新融合圖作為主要量測輸入。
+- 診斷範圍：原始 frame 350–385；來源/edge spread 以原始 3840×2160 影格像素量測，OCR 控制組另明確標註 canonical、bicubic 輸入與既有 pipeline 輸出。
 - 路牌 ROI：每幀 HSV 候選框，完整座標與數值見 `diagnosis.json`；靜態對照 ROI：`{data['roi_policy']['background']}`（左側水泥柱/邊界區域）。
 - ffprobe：codec=`{compression.get('codec')}`, pix_fmt=`{compression.get('pix_fmt')}`, bitrate=`{compression.get('bitrate_bps')}` bps，bits/pixel/frame=`{compression.get('bits_per_pixel_per_frame')}`。
 - frame 350–385 的 I/P/B 分佈：`{compression.get('pict_type_counts')}`；packet size 與全幀 Laplacian 的相關係數：`{_fmt(compression.get('packet_laplacian_correlation'))}`。
@@ -710,7 +818,7 @@ def write_report(data: dict[str, Any]) -> None:
 - 中文大字高度估計中位數 `{_fmt(float(np.median(large)) if large else None)}` px；估計筆畫寬度中位數 `{_fmt(float(np.median(strokes)) if strokes else None)}` px。
 - OCR：engine=`{data['ocr'].get('engine')}`, available=`{data['ocr'].get('available')}`；逐項命中統計見下方與 `diagnosis.json`。
 
-**初步判定：** 原始影片對細小筆畫的資訊上限具有高影響證據；運動/失焦與低有效頻寬是主要候選。這份診斷沒有產生新的增強、銳化、超解析或 final pipeline 輸出，因此不能用它宣稱任何演算法改善。
+**初步判定：** 原始影片是否形成資訊上限目前仍**未證實**；運動/失焦與低有效頻寬保留為中等候選，並等待軸向 edge spread 確認。這份診斷沒有產生新的增強、銳化、超解析或 final pipeline 輸出。
 
 ## 診斷 1：來源與壓縮
 
@@ -734,11 +842,11 @@ frame 385 整張原始畫面做 1/2、1/3、1/4、1/6 降採樣再 bicubic 回�
 
 ## 診斷 4：edge spread
 
-固定使用路牌左右外框與中間分隔線（垂直邊緣，沿水平方向取樣）、上下外框（水平邊緣，沿垂直方向取樣），每個 ESF 沿邊緣平均至少 30 條 profile，以 erf 擬合 sigma 與 10–90 width。fit fail 或寬度過接近 49 px 取樣窗口會標 invalid 並排除統計；frame、ROI、profile count、invalid reason 在 `diagnosis.json`，摘要 CSV 在 `frame_measurements.csv`。水泥柱使用固定背景 ROI 內最強垂直梯度邊緣作對照。
+固定使用三組垂直邊（左右外框、中間分隔線；邊緣沿 y、沿 x 量 sigma）與兩組水平邊（上下外框；邊緣沿 x、沿 y 量 sigma），另保留水泥柱背景。每個 ESF 沿邊緣平均至少 30 條原始灰階 profile；沒有插值、二值化或銳化。fit fail 或窗口邊界無效會標 invalid 並排除統計；逐幀 sigma/10–90、取樣線與軸定義在 `diagnosis.json`，診斷 overlay 為 `edge_spread_overlay_frame_385.png`。
 
 ## 診斷 5：運動模糊
 
-Farneback flow 在原始 full-frame 上計算，再取當幀路牌 bbox 內位移；同時記錄 bbox 尺度變化。拖尾公式為 `flow_px_per_frame × 30 × exposure_seconds`；1/60、1/120、1/250 的舊版本少乘 30，本版已修正並在每筆 flow record 標註。曝光仍未知，故只是情境估計。
+Farneback flow 在原始 full-frame 上計算，再取當幀路牌 bbox 內位移；同時記錄 bbox 尺度變化。相鄰幀位移分開報告 median=`{_fmt(median_flow_range[0] if median_flow_range else None)}–{_fmt(median_flow_range[1] if median_flow_range else None)}` px/frame、mean=`{_fmt(mean_flow_range[0] if mean_flow_range else None)}–{_fmt(mean_flow_range[1] if mean_flow_range else None)}` px/frame。拖尾公式為 `flow_px_per_frame × 30 × exposure_seconds`，並分別列 mean/median；曝光仍未知，故只是情境估計，不能混用兩種統計口徑。
 
 ## 診斷 6：字元尺寸
 
@@ -755,16 +863,24 @@ Farneback flow 在原始 full-frame 上計算，再取當幀路牌 bbox 內位�
 
 ## 診斷 8：OCR 基準
 
-暫定真值為：`{'、'.join(data['ground_truth']['strings'])}`。使用 `rapidocr-onnxruntime`，逐次以隔離 worker 執行，輸入為 36 個原始 crop、既有 best frame、既有 median 與既有 contrast_after_fusion；沒有新增影像。每個輸入都記錄辨識文字、confidence、10 個真值命中，以及大字/小字命中。摘要：`{json.dumps(ocr_summary, ensure_ascii=False)}`。
+暫定真值為：`{'、'.join(data['ground_truth']['strings'])}`。使用 `rapidocr-onnxruntime`，逐次以隔離 worker 執行；控制組包含 36 個 raw crop、raw crop 的 2×/3× bicubic（僅 OCR 輸入，不保存視覺增強 final）、canonical 單幀（不融合）、canonical median（不做 CLAHE）與既有完整 pipeline 輸出。每個輸入記錄辨識文字、confidence、10 個真值逐項命中，以及大字/小字命中。尺寸/矩形化、融合與 CLAHE 的控制定義寫在 `diagnosis.json.ocr.inputs`。摘要：`{json.dumps(ocr_summary, ensure_ascii=False)}`。
+
+逐項命中（至少一筆可用輸入命中；`1` 不是字串正確率）：
+
+| 控制組 | {' | '.join(data['ground_truth']['strings'])} |
+|---|{'|'.join(['---'] * len(data['ground_truth']['strings']))}|
+{chr(10).join('| ' + name + ' | ' + ' | '.join('1' if ocr_hit_table.get(name, {}).get(truth) else '0' for truth in data['ground_truth']['strings']) + ' |' for name in ocr_hit_table)}
+
+大字/小字分組平均命中數（大字 `{', '.join(OCR_BIG)}`；小字 `{', '.join(OCR_SMALL)}`）：`{json.dumps({name: {'big_mean': values['big_hit_count'], 'small_mean': values['small_hit_count']} for name, values in ocr_summary.items()}, ensure_ascii=False)}`。
 
 ## 判定表
 
 | 問題 | 結論 | 證據強度 | 依據 |
 |---|---|---|---|
-| 資訊上限是否由原始影片決定？ | 支持，至少是主要限制之一 | 強 | 原始 ROI 頻譜、edge spread、筆畫像素尺寸與降採樣測試共同支持 |
-| 主要模糊來源 | 運動/失焦/低有效細節優先；壓縮需看 packet/頻譜，不單獨定罪 | 中 | flow、方向 edge spread、路牌/背景頻譜對照 |
+| 資訊上限是否由原始影片決定？ | 未證實 | 未證實 | 頻譜、筆畫尺寸與降採樣只是操作性證據；尚缺軸向 edge spread 確認與可歸因的保留幀驗證 |
+| 主要模糊來源 | 運動/失焦/低有效細節仍是候選 | 中（待軸向 edge spread 確認） | flow 與方向性 edge spread 提供候選訊號，但不能把異向性直接歸因 |
 | 多幀融合是否增加真實解析度？ | 不支持宣稱；較安全解釋是穩定化/降噪 | 中 | raw-crop leave-one-out proxy 受尺度/插值混淆，未得到可歸因於真實高頻新增的證據 |
-| 是否有任何版本可被 OCR 讀出？ | `{data['ocr'].get('available')}` | 中（若 worker 成功）/弱（若 unavailable） | RapidOCR 實際輸出與命中表；不可用時保留原生 worker exit 原因 |
+| 是否有任何版本可被 OCR 讀出？ | `{data['ocr'].get('available')}` | 中（若 worker 成功）/弱（若 unavailable） | RapidOCR 實際輸出與逐項命中表；輸入尺寸、矩形化、融合、CLAHE 混淆已分組標註 |
 
 ## 下一步（限定選項）
 
@@ -778,8 +894,8 @@ Farneback flow 在原始 full-frame 上計算，再取當幀路牌 bbox 內位�
 1. 真值字串依使用者指定暫定，尚未取得人工確認。
 2. 曝光時間未知；拖尾只列三種情境。
 3. HSV bbox 是量測用 ROI，不是通用路牌 detector。
-4. edge spread 未經鏡頭標定，頻譜 cutoff 依 threshold，均不可過度解讀。
-5. OCR 模型不可在缺少權重時自動下載；實際可用狀態以 `diagnosis.json` 為準。
+4. edge spread 未經鏡頭標定；目前方向性差異仍可能受 bbox/中線座標影響，須以軸向邊緣確認。
+5. OCR 模型可由執行環境提供或下載權重；實際可用狀態與 worker 原因以 `diagnosis.json` 為準。
 """
     (OUT / "diagnosis_report.md").write_text(report, encoding="utf-8")
 

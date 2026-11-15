@@ -16,6 +16,7 @@ def main() -> int:
     parser.add_argument("--video")
     parser.add_argument("--frame", type=int)
     parser.add_argument("--bbox", nargs=4, type=int)
+    parser.add_argument("--scale", type=float, default=1.0)
     args = parser.parse_args()
     if args.image:
         image = cv2.imread(args.image)
@@ -28,6 +29,12 @@ def main() -> int:
     if image is None:
         print(json.dumps({"available": False, "reason": "input_unreadable"}))
         return 2
+    if args.scale != 1.0:
+        image = cv2.resize(
+            image,
+            (max(1, round(image.shape[1] * args.scale)), max(1, round(image.shape[0] * args.scale))),
+            interpolation=cv2.INTER_CUBIC,
+        )
     engine = RapidOCR()
     rows, elapsed = engine(image)
     detections = []

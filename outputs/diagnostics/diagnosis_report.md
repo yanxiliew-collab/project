@@ -2,7 +2,7 @@
 
 ## 一頁摘要
 
-- 診斷範圍：原始 frame 350–385；每個 ROI 都以原始 3840×2160 影格像素量測，沒有使用 canonical 450×300、上採樣或新融合圖作為主要量測輸入。
+- 診斷範圍：原始 frame 350–385；來源/edge spread 以原始 3840×2160 影格像素量測，OCR 控制組另明確標註 canonical、bicubic 輸入與既有 pipeline 輸出。
 - 路牌 ROI：每幀 HSV 候選框，完整座標與數值見 `diagnosis.json`；靜態對照 ROI：`[0, 400, 280, 1300]`（左側水泥柱/邊界區域）。
 - ffprobe：codec=`h264`, pix_fmt=`yuv420p`, bitrate=`25351926.0` bps，bits/pixel/frame=`0.10188370466820988`。
 - frame 350–385 的 I/P/B 分佈：`{'B': 1, 'P': 35}`；packet size 與全幀 Laplacian 的相關係數：`0.5929`。
@@ -12,7 +12,7 @@
 - 中文大字高度估計中位數 `34.5000` px；估計筆畫寬度中位數 `5.0000` px。
 - OCR：engine=`rapidocr-onnxruntime`, available=`True`；逐項命中統計見下方與 `diagnosis.json`。
 
-**初步判定：** 原始影片對細小筆畫的資訊上限具有高影響證據；運動/失焦與低有效頻寬是主要候選。這份診斷沒有產生新的增強、銳化、超解析或 final pipeline 輸出，因此不能用它宣稱任何演算法改善。
+**初步判定：** 原始影片是否形成資訊上限目前仍**未證實**；運動/失焦與低有效頻寬保留為中等候選，並等待軸向 edge spread 確認。這份診斷沒有產生新的增強、銳化、超解析或 final pipeline 輸出。
 
 ## 診斷 1：來源與壓縮
 
@@ -36,11 +36,11 @@ frame 385 整張原始畫面做 1/2、1/3、1/4、1/6 降採樣再 bicubic 回�
 
 ## 診斷 4：edge spread
 
-固定使用路牌左右外框與中間分隔線（垂直邊緣，沿水平方向取樣）、上下外框（水平邊緣，沿垂直方向取樣），每個 ESF 沿邊緣平均至少 30 條 profile，以 erf 擬合 sigma 與 10–90 width。fit fail 或寬度過接近 49 px 取樣窗口會標 invalid 並排除統計；frame、ROI、profile count、invalid reason 在 `diagnosis.json`，摘要 CSV 在 `frame_measurements.csv`。水泥柱使用固定背景 ROI 內最強垂直梯度邊緣作對照。
+固定使用三組垂直邊（左右外框、中間分隔線；邊緣沿 y、沿 x 量 sigma）與兩組水平邊（上下外框；邊緣沿 x、沿 y 量 sigma），另保留水泥柱背景。每個 ESF 沿邊緣平均至少 30 條原始灰階 profile；沒有插值、二值化或銳化。fit fail 或窗口邊界無效會標 invalid 並排除統計；逐幀 sigma/10–90、取樣線與軸定義在 `diagnosis.json`，診斷 overlay 為 `edge_spread_overlay_frame_385.png`。
 
 ## 診斷 5：運動模糊
 
-Farneback flow 在原始 full-frame 上計算，再取當幀路牌 bbox 內位移；同時記錄 bbox 尺度變化。拖尾公式為 `flow_px_per_frame × 30 × exposure_seconds`；1/60、1/120、1/250 的舊版本少乘 30，本版已修正並在每筆 flow record 標註。曝光仍未知，故只是情境估計。
+Farneback flow 在原始 full-frame 上計算，再取當幀路牌 bbox 內位移；同時記錄 bbox 尺度變化。相鄰幀位移分開報告 median=`6.8644–15.5046` px/frame、mean=`6.0104–12.5376` px/frame。拖尾公式為 `flow_px_per_frame × 30 × exposure_seconds`，並分別列 mean/median；曝光仍未知，故只是情境估計，不能混用兩種統計口徑。
 
 ## 診斷 6：字元尺寸
 
@@ -57,16 +57,29 @@ Farneback flow 在原始 full-frame 上計算，再取當幀路牌 bbox 內位�
 
 ## 診斷 8：OCR 基準
 
-暫定真值為：`八德、鶯歌、Bade、Yingge、出口、EXIT、1½、公里、km、110乙`。使用 `rapidocr-onnxruntime`，逐次以隔離 worker 執行，輸入為 36 個原始 crop、既有 best frame、既有 median 與既有 contrast_after_fusion；沒有新增影像。每個輸入都記錄辨識文字、confidence、10 個真值命中，以及大字/小字命中。摘要：`{"raw_frames_350_385": {"runs": 36, "available_runs": 36, "mean_hit_count": 1.6111111111111112, "big_hit_count": 0.6666666666666666, "small_hit_count": 0.9444444444444444}, "best_frame": {"runs": 1, "available_runs": 1, "mean_hit_count": 3.0, "big_hit_count": 0.0, "small_hit_count": 3.0}, "median": {"runs": 1, "available_runs": 1, "mean_hit_count": 3.0, "big_hit_count": 1.0, "small_hit_count": 2.0}, "contrast_after_fusion": {"runs": 1, "available_runs": 1, "mean_hit_count": 4.0, "big_hit_count": 1.0, "small_hit_count": 3.0}}`。
+暫定真值為：`八德、鶯歌、Bade、Yingge、出口、EXIT、1½、公里、km、110乙`。使用 `rapidocr-onnxruntime`，逐次以隔離 worker 執行；控制組包含 36 個 raw crop、raw crop 的 2×/3× bicubic（僅 OCR 輸入，不保存視覺增強 final）、canonical 單幀（不融合）、canonical median（不做 CLAHE）與既有完整 pipeline 輸出。每個輸入記錄辨識文字、confidence、10 個真值逐項命中，以及大字/小字命中。尺寸/矩形化、融合與 CLAHE 的控制定義寫在 `diagnosis.json.ocr.inputs`。摘要：`{"raw_frames_350_385": {"runs": 36, "available_runs": 36, "mean_hit_count": 1.6111111111111112, "big_hit_count": 0.6666666666666666, "small_hit_count": 0.9444444444444444}, "raw_frames_2x_bicubic": {"runs": 36, "available_runs": 36, "mean_hit_count": 1.6111111111111112, "big_hit_count": 0.4444444444444444, "small_hit_count": 1.1666666666666667}, "raw_frames_3x_bicubic": {"runs": 36, "available_runs": 36, "mean_hit_count": 1.5833333333333333, "big_hit_count": 0.4722222222222222, "small_hit_count": 1.1111111111111112}, "canonical_single_no_fusion": {"runs": 1, "available_runs": 1, "mean_hit_count": 4.0, "big_hit_count": 1.0, "small_hit_count": 3.0}, "canonical_median_no_clahe": {"runs": 1, "available_runs": 1, "mean_hit_count": 3.0, "big_hit_count": 1.0, "small_hit_count": 2.0}, "full_pipeline_contrast_after_fusion": {"runs": 1, "available_runs": 1, "mean_hit_count": 4.0, "big_hit_count": 1.0, "small_hit_count": 3.0}}`。
+
+逐項命中（至少一筆可用輸入命中；`1` 不是字串正確率）：
+
+| 控制組 | 八德 | 鶯歌 | Bade | Yingge | 出口 | EXIT | 1½ | 公里 | km | 110乙 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| raw_frames_350_385 | 1 | 0 | 1 | 1 | 1 | 1 | 0 | 1 | 0 | 0 |
+| raw_frames_2x_bicubic | 1 | 0 | 1 | 1 | 1 | 1 | 0 | 1 | 0 | 0 |
+| raw_frames_3x_bicubic | 1 | 0 | 1 | 1 | 1 | 1 | 0 | 1 | 0 | 0 |
+| canonical_single_no_fusion | 1 | 0 | 1 | 1 | 0 | 0 | 0 | 1 | 0 | 0 |
+| canonical_median_no_clahe | 1 | 0 | 1 | 1 | 0 | 0 | 0 | 0 | 0 | 0 |
+| full_pipeline_contrast_after_fusion | 1 | 0 | 1 | 1 | 1 | 0 | 0 | 0 | 0 | 0 |
+
+大字/小字分組平均命中數（大字 `八德, 鶯歌`；小字 `出口, 公里, EXIT, km, Bade, Yingge, 1½, 110乙`）：`{"raw_frames_350_385": {"big_mean": 0.6666666666666666, "small_mean": 0.9444444444444444}, "raw_frames_2x_bicubic": {"big_mean": 0.4444444444444444, "small_mean": 1.1666666666666667}, "raw_frames_3x_bicubic": {"big_mean": 0.4722222222222222, "small_mean": 1.1111111111111112}, "canonical_single_no_fusion": {"big_mean": 1.0, "small_mean": 3.0}, "canonical_median_no_clahe": {"big_mean": 1.0, "small_mean": 2.0}, "full_pipeline_contrast_after_fusion": {"big_mean": 1.0, "small_mean": 3.0}}`。
 
 ## 判定表
 
 | 問題 | 結論 | 證據強度 | 依據 |
 |---|---|---|---|
-| 資訊上限是否由原始影片決定？ | 支持，至少是主要限制之一 | 強 | 原始 ROI 頻譜、edge spread、筆畫像素尺寸與降採樣測試共同支持 |
-| 主要模糊來源 | 運動/失焦/低有效細節優先；壓縮需看 packet/頻譜，不單獨定罪 | 中 | flow、方向 edge spread、路牌/背景頻譜對照 |
+| 資訊上限是否由原始影片決定？ | 未證實 | 未證實 | 頻譜、筆畫尺寸與降採樣只是操作性證據；尚缺軸向 edge spread 確認與可歸因的保留幀驗證 |
+| 主要模糊來源 | 運動/失焦/低有效細節仍是候選 | 中（待軸向 edge spread 確認） | flow 與方向性 edge spread 提供候選訊號，但不能把異向性直接歸因 |
 | 多幀融合是否增加真實解析度？ | 不支持宣稱；較安全解釋是穩定化/降噪 | 中 | raw-crop leave-one-out proxy 受尺度/插值混淆，未得到可歸因於真實高頻新增的證據 |
-| 是否有任何版本可被 OCR 讀出？ | `True` | 中（若 worker 成功）/弱（若 unavailable） | RapidOCR 實際輸出與命中表；不可用時保留原生 worker exit 原因 |
+| 是否有任何版本可被 OCR 讀出？ | `True` | 中（若 worker 成功）/弱（若 unavailable） | RapidOCR 實際輸出與逐項命中表；輸入尺寸、矩形化、融合、CLAHE 混淆已分組標註 |
 
 ## 下一步（限定選項）
 
@@ -80,5 +93,5 @@ Farneback flow 在原始 full-frame 上計算，再取當幀路牌 bbox 內位�
 1. 真值字串依使用者指定暫定，尚未取得人工確認。
 2. 曝光時間未知；拖尾只列三種情境。
 3. HSV bbox 是量測用 ROI，不是通用路牌 detector。
-4. edge spread 未經鏡頭標定，頻譜 cutoff 依 threshold，均不可過度解讀。
-5. OCR 模型不可在缺少權重時自動下載；實際可用狀態以 `diagnosis.json` 為準。
+4. edge spread 未經鏡頭標定；目前方向性差異仍可能受 bbox/中線座標影響，須以軸向邊緣確認。
+5. OCR 模型可由執行環境提供或下載權重；實際可用狀態與 worker 原因以 `diagnosis.json` 為準。

@@ -76,8 +76,8 @@
 
 | 根因 | 判斷 |
 |---|---|
-| 原始資訊/解析度限制 | high |
-| 運動模糊 | high |
+| 原始資訊/解析度限制 | not proven |
+| 運動模糊 | medium candidate; await axis-aligned edge spread |
 | 失焦或低細節 | medium |
 | ROI/對位 | medium |
 | 遮擋 | low–medium |
@@ -195,6 +195,24 @@ contrast-only 同時輸出：
 
 銳化後邊緣看起來更硬，不等於找回不存在的字筆畫；因此目前不把任何銳化版列為 final。
 
+### 4.9 最新 diagnostics：leave-one-out 與資訊上限重評
+
+`outputs/diagnostics/diagnosis.json` 與 `diagnosis_report.md` 的最新結果只重新量測原始幀及既有輸出，沒有新增 fusion/enhancement 圖，也沒有修改 pipeline。leave-one-out 仍是「各原始 crop resize 到 frame 385 尺寸」的 proxy：單候選平均 PSNR `17.0808` dB、SSIM `0.5032`，前後半序列互相比較為 PSNR `18.7077` dB、SSIM `0.6131`。但 frame 350→385 的路牌尺度約由 `184` px 增至 `357` px，候選間還有 bbox 尺度、透視與插值差異；因此這些數字只能表示幀間內容/幾何差異，不能把 PSNR/SSIM 或高頻平均 `3.1312` 歸因為融合後新增真實高頻。原 leave-one-out 對「多幀融合增加真實解析度」最多是**弱、混淆未排除的證據**，本報告降級為不支持該宣稱；可支持的說法是對位後融合可能帶來穩定化或降噪。
+
+交叉證據目前不足以證實「原始影片形成資訊上限」：原始 ROI 徑向頻譜 cutoff 約 `0.3545–0.4077` cycles/pixel（操作性 threshold，不是 MTF）；edge spread 的有效統計為垂直 sigma 中位數 `4.2150` px、10–90 寬度 `10.8036` px，水平 sigma `0.2754` px、寬度 `0.7060` px。量測直接使用原始 full-frame 灰階，沒有插值、二值化或銳化，但 bbox 外框與中線仍是未校正整數座標，因此方向性異常必須等待軸向 edge spread 複核。診斷 overlay 與逐幀 sigma/10–90 表在 `outputs/diagnostics/edge_spread_overlay_frame_385.png`、`diagnosis.json`、`frame_measurements.csv`。
+
+光流統計明確分開：相鄰幀路牌區域位移 median=`6.86–15.50` px/frame，mean=`6.01–12.54` px/frame；拖尾使用 `flow × 30 × exposure`，1/60、1/120、1/250 秒分別為 mean `3.01–6.27`、`1.50–3.13`、`0.72–1.50` px，median `3.43–7.75`、`1.72–3.88`、`0.82–1.86` px。曝光未知，所以全是情境估計，不能混用 mean 與 median。降採樣後 bicubic round-trip 在 2×/3×/4×/6× 的 PSNR/SSIM 為 `43.88/0.993`、`39.72/0.982`、`37.02/0.967`、`33.26/0.928`；這是可近似保留性的操作性測試，不是真實感測器解析度。
+
+OCR 只作下游可用性證據：最新 RapidOCR 在 36 個 raw crops 的平均命中數為 `1.61/10`，2×/3× bicubic 分別為 `1.61/10`、`1.58/10`；canonical 單幀（不融合）為 `4/10`，canonical median（不做 CLAHE）為 `3/10`，既有完整 pipeline 為 `4/10`。每個輸入的文字、confidence、10 項 hit table、大字/小字統計與控制條件均在 `outputs/diagnostics/diagnosis.json` 與 `diagnosis_report.md`；2×/3× 僅作 OCR 輸入，沒有新增視覺增強 final。綜合 OCR、edge spread、flow/trail、頻譜與有效解析度結果，最新判定表如下：
+
+| 問題 | 最新結論 | 證據強度 | 主要依據與限制 |
+|---|---|---|---|
+| 原始影片是否形成資訊上限？ | 未證實 | 未證實 | 頻譜、筆畫尺寸與 round-trip 只是操作性證據；edge spread 方向性與座標風險仍待軸向複核 |
+| leave-one-out 能否證明多幀融合增加真實解析度？ | 不能；降級為弱證據，結論維持不支持宣稱 | 弱 | raw-crop resize proxy 的 PSNR/SSIM 混入尺度、透視與插值；沒有共同物理座標下的獨立高頻新增證據 |
+| 多幀融合目前可合理主張什麼？ | 穩定化/降噪的候選效果，不是真實解析度恢復 | 中 | 既有對位與融合輸出較穩定，但 OCR 命中差異非盲測、且未排除選幀/尺度因素 |
+| 主要模糊或變異來源 | 運動、失焦/低有效細節、尺度變化仍是候選 | 中（待軸向 edge spread） | flow mean/median 與情境拖尾已分開；方向性 edge spread 尚不能直接歸因 |
+| OCR 是否顯示下游可用性？ | 有限支持「部分文字可讀」，不支持解析度提升 | 中 | raw `1.61/10`，best/median/contrast `3/10`、`3/10`、`4/10`；真值是假設且輸入流程不同 |
+
 ## 5. 目前結論
 
 1. **偵測**：通用 COCO YOLO 不足以辨識本路牌；HSV fallback 對本片有效，但不是通用 detector。
@@ -203,7 +221,7 @@ contrast-only 同時輸出：
 4. **文字分離**：可提升字與綠底的視覺對比，但 mask/二值化不能當原彩 final。
 5. **對比增強**：Lab-L CLAHE/gamma 是目前最穩健的低風險主結果。
 6. **銳化**：目前只有視覺邊緣變硬，沒有足夠證據證明真實細節改善；保留為 rejected evaluation。
-7. **硬上限**：原始片段中的小筆畫已被運動模糊/低解析度抹除，傳統增強不能保證恢復；不能用高 Laplacian 或超解析幻覺宣稱成功。
+7. **證據限制**：最新 diagnostics 尚未證實原始影片形成硬資訊上限；運動/失焦仍是中等候選，需軸向 edge spread 複核。leave-one-out 受尺度/插值混淆，不能宣稱多幀融合增加真實解析度。傳統增強仍不能保證恢復小筆畫，也不能用高 Laplacian、OCR 命中或超解析視覺效果替代共同座標與保留幀驗證。
 
 ## 6. 下一步改善方向（優先級）
 
