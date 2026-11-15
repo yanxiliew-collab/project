@@ -12,5 +12,5 @@ class PreprocessConfig:
     gamma: float = 1.0
     clahe_clip_limit: float = 2.0
     clahe_tile_grid: tuple[int, int] = (8, 8)
-    fusion_method: Literal["mean", "median"] = "mean"
+    fusion_method: Literal["mean", "median", "weighted_mean"] = "mean"
     ecc_min_correlation: float = 0.8

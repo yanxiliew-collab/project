@@ -76,3 +76,23 @@ def test_pipeline_connects_fusion_mode() -> None:
     assert result.image is not None
     assert result.image.dtype == np.uint8
     assert result.diagnostics["mode"] == "fusion"
+
+
+def test_weighted_fusion_reports_confidence_weights() -> None:
+    frames = _track(_reference(), [(0, 0), (1, 0), (-1, 1)])
+
+    result = preprocess(
+        frames,
+        PreprocessConfig(
+            mode="fusion",
+            max_frames=3,
+            time_budget_ms=500,
+            fusion_method="weighted_mean",
+        ),
+    )
+
+    assert result.image is not None
+    assert result.diagnostics["weights"]
+    assert len(result.diagnostics["weights"]) == len(
+        result.diagnostics["accepted"]
+    )

@@ -32,6 +32,20 @@ def _gray(image: np.ndarray) -> np.ndarray:
     return image.astype(np.float32) / 255.0
 
 
+def _motion_quality(reference: np.ndarray, candidate: np.ndarray) -> tuple[float, float]:
+    """Estimate residual motion and occlusion after alignment."""
+
+    reference_gray = cv2.cvtColor(reference, cv2.COLOR_BGR2GRAY)
+    candidate_gray = cv2.cvtColor(candidate, cv2.COLOR_BGR2GRAY)
+    residual = np.abs(
+        reference_gray.astype(np.float32) - candidate_gray.astype(np.float32)
+    ) / 255.0
+    mean_residual = float(np.mean(residual))
+    quality = float(np.exp(-4.0 * mean_residual))
+    occlusion_ratio = float(np.mean(residual > 0.25))
+    return quality, occlusion_ratio
+
+
 def _alignment_mask(
     bbox: tuple[int, int, int, int], shape: tuple[int, ...]
 ) -> np.ndarray:
@@ -92,10 +106,18 @@ def fuse(
     selected = scored[:max_frames]
     mask = _alignment_mask(reference.bbox, reference_image.shape)
     accepted_images = [_roi(reference)]
+    accepted_weights = [max(scored[0][0], 1e-6)]
+    accepted_quality = [
+        {
+            "frame_idx": reference.frame_idx,
+            "motion_quality": 1.0,
+            "occlusion_ratio": 0.0,
+        }
+    ]
     accepted = [{"frame_idx": reference.frame_idx, "correlation": 1.0}]
     rejected: list[dict[str, object]] = []
 
-    for _, index, frame in selected:
+    for frame_score, index, frame in selected:
         if index == reference_index:
             continue
         if (perf_counter() - started) * 1000.0 >= cfg.time_budget_ms:
@@ -120,7 +142,22 @@ def fuse(
             )
             continue
         x1, y1, x2, y2 = reference.bbox
-        accepted_images.append(aligned[y1:y2, x1:x2])
+        aligned_roi = aligned[y1:y2, x1:x2]
+        reference_roi = reference_image[y1:y2, x1:x2]
+        motion_quality, occlusion_ratio = _motion_quality(reference_roi, aligned_roi)
+        accepted_images.append(aligned_roi)
+        accepted_weights.append(
+            max(frame_score, 1e-6)
+            * max(correlation, 0.0)
+            * motion_quality
+        )
+        accepted_quality.append(
+            {
+                "frame_idx": frame.frame_idx,
+                "motion_quality": motion_quality,
+                "occlusion_ratio": occlusion_ratio,
+            }
+        )
         accepted.append({"frame_idx": frame.frame_idx, "correlation": correlation})
 
     if len(accepted_images) == 1 and len(track_frames) > 1:
@@ -130,6 +167,11 @@ def fuse(
                 "mode": "fusion",
                 "fallback_best_frame": True,
                 "reference_frame_idx": reference.frame_idx,
+                "alignment_bbox": reference.bbox,
+                "frame_scores": [
+                    {"frame_idx": item.frame_idx, "score": score}
+                    for score, _, item in scored
+                ],
                 "accepted": accepted,
                 "rejected": rejected,
                 "processed_frames": len(accepted),
@@ -141,6 +183,21 @@ def fuse(
         image = np.mean(stack, axis=0)
     elif cfg.fusion_method == "median":
         image = np.median(stack, axis=0)
+    elif cfg.fusion_method == "weighted_mean":
+        weights = np.asarray(accepted_weights, dtype=np.float32)
+        if not np.all(np.isfinite(weights)) or float(weights.sum()) <= 0:
+            image = np.median(stack, axis=0)
+        else:
+            median = np.median(stack, axis=0)
+            residual = np.abs(
+                np.mean(stack, axis=3)
+                - np.mean(median, axis=2)[None, ...]
+            )
+            pixel_confidence = np.exp(-residual / 25.0)
+            pixel_weights = weights[:, None, None] * pixel_confidence
+            image = np.sum(stack * pixel_weights[..., None], axis=0) / np.maximum(
+                np.sum(pixel_weights, axis=0)[..., None], 1e-6
+            )
     else:
         raise ValueError(f"unsupported fusion method: {cfg.fusion_method!r}")
     return PreprocessResult(
@@ -148,7 +205,17 @@ def fuse(
         diagnostics={
             "mode": "fusion",
             "reference_frame_idx": reference.frame_idx,
+            "alignment_bbox": reference.bbox,
+            "frame_scores": [
+                {"frame_idx": item.frame_idx, "score": score}
+                for score, _, item in scored
+            ],
             "accepted": accepted,
+            "weights": [
+                {"frame_idx": item["frame_idx"], "weight": float(weight)}
+                for item, weight in zip(accepted, accepted_weights)
+            ],
+            "quality": accepted_quality,
             "rejected": rejected,
             "processed_frames": len(accepted),
         },
