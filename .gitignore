@@ -6,6 +6,7 @@ venv/
 
 # Generated evaluation artifacts and local model files.
 outputs/road_signs/
+outputs/rebuild_road_sign/
 *.pdf
 *.pt
 *.onnx
