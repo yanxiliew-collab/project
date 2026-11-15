@@ -69,6 +69,7 @@ def run_evaluation(
     weights: str,
     output: str | Path = "outputs/real",
     max_frames: Sequence[int] = (3, 5),
+    drop_every: int = 0,
     detector: Optional[Detector] = None,
 ) -> list[dict[str, object]]:
     """Run all requested modes and write output images plus ``results.csv``."""
@@ -80,6 +81,7 @@ def run_evaluation(
         video,
         weights,
         max_frames_per_track=max_n,
+        drop_every=drop_every,
         detector=detector,
     )
     rows: list[dict[str, object]] = []
@@ -153,8 +155,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--weights", required=True)
     parser.add_argument("--out", default="outputs/real")
     parser.add_argument("--max-frames", nargs="+", type=int, default=[3, 5])
+    parser.add_argument(
+        "--drop-every",
+        type=int,
+        default=0,
+        help="Skip every Nth decoded frame before detection (0 keeps all frames).",
+    )
     args = parser.parse_args(argv)
-    run_evaluation(args.video, args.weights, args.out, args.max_frames)
+    run_evaluation(args.video, args.weights, args.out, args.max_frames, args.drop_every)
     return 0
 
 

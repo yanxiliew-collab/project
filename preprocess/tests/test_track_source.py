@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 from preprocess.eval.run_real import run_evaluation
-from preprocess.eval.track_source import iter_tracks
+from preprocess.eval.track_source import _sign_candidates, iter_tracks
 
 
 def _write_video(path, frame_count=7) -> None:
@@ -67,6 +67,22 @@ def test_iter_tracks_drop_history_bbox_and_short_track(tmp_path) -> None:
         x1, y1, x2, y2 = frame.bbox
         assert 0 <= x1 <= x2 <= 64
         assert 0 <= y1 <= y2 <= 48
+
+
+def test_sign_candidates_find_colored_sign_region() -> None:
+    frame = np.zeros((100, 140, 3), dtype=np.uint8)
+    cv2.rectangle(frame, (50, 25), (90, 65), (0, 0, 255), -1)
+
+    detections = _sign_candidates(frame)
+
+    assert detections
+    assert any(
+        detection["bbox"][0] <= 50
+        and detection["bbox"][1] <= 25
+        and detection["bbox"][2] >= 90
+        and detection["bbox"][3] >= 65
+        for detection in detections
+    )
 
 
 def test_track_source_single_occurrence_is_ignored(tmp_path) -> None:

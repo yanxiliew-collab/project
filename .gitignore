@@ -3,3 +3,10 @@ __pycache__/
 .pytest_cache/
 .venv/
 venv/
+
+# Generated evaluation artifacts and local model files.
+outputs/road_signs/
+*.pdf
+*.pt
+*.onnx
+*.engine

@@ -25,21 +25,124 @@ def _to_numpy(value: Any) -> np.ndarray:
     return np.asarray(value)
 
 
+def _sign_candidates(frame: np.ndarray) -> list[dict[str, object]]:
+    """Find likely sign regions for COCO models that do not contain signs."""
+
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    masks = [
+        cv2.inRange(hsv, (0, 70, 50), (12, 255, 255)),
+        cv2.inRange(hsv, (165, 70, 50), (179, 255, 255)),
+        cv2.inRange(hsv, (90, 50, 45), (140, 255, 255)),
+        cv2.inRange(hsv, (15, 70, 60), (45, 255, 255)),
+    ]
+    mask = masks[0]
+    for candidate in masks[1:]:
+        mask = cv2.bitwise_or(mask, candidate)
+    kernel = np.ones((3, 3), dtype=np.uint8)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+
+    height, width = frame.shape[:2]
+    minimum_area = max(20.0, height * width * 0.00015)
+    detections: list[dict[str, object]] = []
+    for contour in cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[
+        0
+    ]:
+        area = cv2.contourArea(contour)
+        if area < minimum_area:
+            continue
+        x, y, box_width, box_height = cv2.boundingRect(contour)
+        if box_width < 8 or box_height < 8:
+            continue
+        aspect = box_width / box_height
+        if not 0.25 <= aspect <= 4.0:
+            continue
+        fill = area / float(box_width * box_height)
+        if fill < 0.25:
+            continue
+        detections.append(
+            {
+                "bbox": (x, y, x + box_width, y + box_height),
+                "conf": min(0.9, 0.35 + fill),
+                "cls": None,
+                "_score": area * fill,
+            }
+        )
+    detections.sort(key=lambda item: float(item["_score"]), reverse=True)
+    return [
+        {key: value for key, value in item.items() if key != "_score"}
+        for item in detections[:8]
+    ]
+
+
 def _default_detector(weights: str) -> Detector:
     from ultralytics import YOLO
 
     model = YOLO(weights)
+    previous: list[tuple[int, tuple[int, int, int, int]]] = []
+    next_id = -1
 
     def detect(frame: np.ndarray) -> Any:
+        nonlocal next_id, previous
         results = model.track(
             frame,
             persist=True,
             tracker="bytetrack.yaml",
             verbose=False,
         )
-        return results[0] if results else []
+        detections: list[dict[str, object]] = []
+        if results:
+            for track_id, bbox, confidence, class_id in _iter_detections(results[0]):
+                if class_id not in (9, 11):
+                    continue
+                detections.append(
+                    {
+                        "track_id": track_id,
+                        "bbox": bbox,
+                        "conf": confidence,
+                        "cls": class_id,
+                    }
+                )
+
+        # A stock COCO model commonly detects cars but has no generic road-sign
+        # class. Keep its detections and add deterministic IDs for sign proposals.
+        proposals = _sign_candidates(frame)
+        current: list[tuple[int, tuple[int, int, int, int]]] = []
+        for proposal in proposals:
+            bbox = tuple(int(value) for value in proposal["bbox"])
+            best_id: Optional[int] = None
+            best_iou = 0.0
+            for previous_id, previous_bbox in previous:
+                overlap = _bbox_iou(bbox, previous_bbox)
+                if overlap > best_iou:
+                    best_iou = overlap
+                    best_id = previous_id
+            if best_id is not None and best_iou >= 0.2:
+                track_id = best_id
+            else:
+                track_id = next_id
+                next_id -= 1
+            detections.append({**proposal, "track_id": track_id})
+            current.append((track_id, bbox))
+        previous = current
+        return detections
 
     return detect
+
+
+def _bbox_iou(
+    first: Sequence[int], second: Sequence[int]
+) -> float:
+    ax1, ay1, ax2, ay2 = first
+    bx1, by1, bx2, by2 = second
+    intersection = max(0, min(ax2, bx2) - max(ax1, bx1)) * max(
+        0, min(ay2, by2) - max(ay1, by1)
+    )
+    if intersection == 0:
+        return 0.0
+    first_area = max(0, ax2 - ax1) * max(0, ay2 - ay1)
+    second_area = max(0, bx2 - bx1) * max(0, by2 - by1)
+    return intersection / float(first_area + second_area - intersection)
 
 
 def _iter_detections(raw: Any) -> Iterable[Detection]:
