@@ -7,9 +7,10 @@
 - ffprobe：codec=`h264`, pix_fmt=`yuv420p`, bitrate=`25351926.0` bps，bits/pixel/frame=`0.10188370466820988`。
 - frame 350–385 的 I/P/B 分佈：`{'B': 1, 'P': 35}`；packet size 與全幀 Laplacian 的相關係數：`0.5929`。
 - 路牌徑向頻譜 cutoff 估計範圍：`0.3545`–`0.4077` cycles/pixel；這是操作性 threshold，不是光學 MTF。
-- 路牌 edge spread 估計：垂直中位數 `23.8865` px、水平中位數 `25.1268` px；水泥柱 frame 385 對照見 JSON。
+- 路牌 ESF（erf fit、至少 30 條 profile）估計：垂直 sigma 中位數 `4.2150` px、10–90 寬度 `10.8036` px；水平 sigma `0.2754` px、寬度 `0.7060` px；水泥柱 frame 385 對照見 JSON。
+- frame 385 水泥柱背景 ESF：`unavailable` sigma、`unavailable` px 10–90；若 invalid 已從統計排除。
 - 中文大字高度估計中位數 `34.5000` px；估計筆畫寬度中位數 `5.0000` px。
-- OCR：PaddleOCR unavailable；EasyOCR 狀態見 `diagnosis.json`，不會因套件存在就假稱已完成 OCR。
+- OCR：engine=`rapidocr-onnxruntime`, available=`True`；逐項命中統計見下方與 `diagnosis.json`。
 
 **初步判定：** 原始影片對細小筆畫的資訊上限具有高影響證據；運動/失焦與低有效頻寬是主要候選。這份診斷沒有產生新的增強、銳化、超解析或 final pipeline 輸出，因此不能用它宣稱任何演算法改善。
 
@@ -35,11 +36,11 @@ frame 385 整張原始畫面做 1/2、1/3、1/4、1/6 降採樣再 bicubic 回�
 
 ## 診斷 4：edge spread
 
-逐幀在路牌 crop 的最強垂直/水平梯度剖面計算 10–90% 寬度；對照 frame 385 的固定水泥柱 ROI。原始每幀數值在 `frame_measurements.csv`。方向差異若顯著，支持方向性運動模糊；若路牌與背景都寬，較支持全局失焦/光學限制。
+固定使用路牌左右外框與中間分隔線（垂直邊緣，沿水平方向取樣）、上下外框（水平邊緣，沿垂直方向取樣），每個 ESF 沿邊緣平均至少 30 條 profile，以 erf 擬合 sigma 與 10–90 width。fit fail 或寬度過接近 49 px 取樣窗口會標 invalid 並排除統計；frame、ROI、profile count、invalid reason 在 `diagnosis.json`，摘要 CSV 在 `frame_measurements.csv`。水泥柱使用固定背景 ROI 內最強垂直梯度邊緣作對照。
 
 ## 診斷 5：運動模糊
 
-Farneback flow 在原始 full-frame 上計算，再取當幀路牌 bbox 內位移；同時記錄 bbox 尺度變化。曝光 1/60、1/120、1/250 的拖尾只是情境估計，不能冒充相機曝光資訊。沒有用 radial FFT 宣稱唯一 blur kernel；方向性只能做交叉證據。
+Farneback flow 在原始 full-frame 上計算，再取當幀路牌 bbox 內位移；同時記錄 bbox 尺度變化。拖尾公式為 `flow_px_per_frame × 30 × exposure_seconds`；1/60、1/120、1/250 的舊版本少乘 30，本版已修正並在每筆 flow record 標註。曝光仍未知，故只是情境估計。
 
 ## 診斷 6：字元尺寸
 
@@ -56,7 +57,7 @@ Farneback flow 在原始 full-frame 上計算，再取當幀路牌 bbox 內位�
 
 ## 診斷 8：OCR 基準
 
-暫定真值為：`八德、鶯歌、Bade、Yingge、出口、EXIT、1½、公里、km、110乙`。PaddleOCR 未安裝；EasyOCR 雖有套件但若模型未快取則不下載、不執行。這不是 OCR 失敗被隱藏，而是環境可重現性限制。任何可用結果都會列出實際文字與 confidence；沒有結果就標 unavailable。
+暫定真值為：`八德、鶯歌、Bade、Yingge、出口、EXIT、1½、公里、km、110乙`。使用 `rapidocr-onnxruntime`，逐次以隔離 worker 執行，輸入為 36 個原始 crop、既有 best frame、既有 median 與既有 contrast_after_fusion；沒有新增影像。每個輸入都記錄辨識文字、confidence、10 個真值命中，以及大字/小字命中。摘要：`{"raw_frames_350_385": {"runs": 36, "available_runs": 36, "mean_hit_count": 1.6111111111111112, "big_hit_count": 0.6666666666666666, "small_hit_count": 0.9444444444444444}, "best_frame": {"runs": 1, "available_runs": 1, "mean_hit_count": 3.0, "big_hit_count": 0.0, "small_hit_count": 3.0}, "median": {"runs": 1, "available_runs": 1, "mean_hit_count": 3.0, "big_hit_count": 1.0, "small_hit_count": 2.0}, "contrast_after_fusion": {"runs": 1, "available_runs": 1, "mean_hit_count": 4.0, "big_hit_count": 1.0, "small_hit_count": 3.0}}`。
 
 ## 判定表
 
@@ -65,7 +66,7 @@ Farneback flow 在原始 full-frame 上計算，再取當幀路牌 bbox 內位�
 | 資訊上限是否由原始影片決定？ | 支持，至少是主要限制之一 | 強 | 原始 ROI 頻譜、edge spread、筆畫像素尺寸與降採樣測試共同支持 |
 | 主要模糊來源 | 運動/失焦/低有效細節優先；壓縮需看 packet/頻譜，不單獨定罪 | 中 | flow、方向 edge spread、路牌/背景頻譜對照 |
 | 多幀融合是否增加真實解析度？ | 不支持宣稱；較安全解釋是穩定化/降噪 | 中 | raw-crop leave-one-out proxy 受尺度/插值混淆，未得到可歸因於真實高頻新增的證據 |
-| 是否有任何版本可被 OCR 讀出？ | `False`；PaddleOCR unavailable | 弱/未知 | OCR 依賴與模型快取限制，不能以肉眼推測 CER |
+| 是否有任何版本可被 OCR 讀出？ | `True` | 中（若 worker 成功）/弱（若 unavailable） | RapidOCR 實際輸出與命中表；不可用時保留原生 worker exit 原因 |
 
 ## 下一步（限定選項）
 

@@ -7,11 +7,13 @@ import json
 import math
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
 import cv2
 import numpy as np
+from scipy.optimize import curve_fit
 from skimage.metrics import peak_signal_noise_ratio, structural_similarity
 
 try:
@@ -206,43 +208,118 @@ def _spectrum_summary(image: np.ndarray) -> dict[str, Any]:
     }
 
 
-def _edge_width(profile: np.ndarray) -> float | None:
-    values = profile.astype(np.float32)
-    gradient = np.abs(np.gradient(values))
-    center = int(np.argmax(gradient))
-    lo = max(0, center - 30)
-    hi = min(len(values), center + 31)
-    local = values[lo:hi]
-    if local.max() - local.min() < 5:
-        return None
-    low = local.min() + 0.1 * (local.max() - local.min())
-    high = local.min() + 0.9 * (local.max() - local.min())
-    def crossing(threshold: float) -> float | None:
-        indices = np.where(local >= threshold)[0]
-        if not len(indices):
-            return None
-        index = int(indices[0])
-        if index == 0:
-            return 0.0
-        left, right = float(local[index - 1]), float(local[index])
-        fraction = (threshold - left) / max(right - left, 1e-6)
-        return float(index - 1 + np.clip(fraction, 0.0, 1.0))
-
-    low_cross = crossing(low)
-    high_cross = crossing(high)
-    if low_cross is None or high_cross is None:
-        return None
-    return max(0.0, high_cross - low_cross)
+def _erf_model(x: np.ndarray, baseline: float, amplitude: float, center: float, sigma: float) -> np.ndarray:
+    return baseline + amplitude * np.vectorize(math.erf)((x - center) / (math.sqrt(2.0) * sigma))
 
 
-def _edge_spread(image: np.ndarray) -> dict[str, float | None]:
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    h, w = gray.shape
-    vertical = gray[h // 2, :]
-    horizontal = gray[:, w // 2]
+def _fit_esf(profiles: list[np.ndarray], edge_name: str, window_radius: int) -> dict[str, Any]:
+    if len(profiles) < 30:
+        return {"edge": edge_name, "valid": False, "reason": "fewer_than_30_profiles", "profile_count": len(profiles)}
+    profile = np.mean(np.stack(profiles).astype(np.float32), axis=0)
+    x = np.arange(len(profile), dtype=np.float64)
+    if float(profile.max() - profile.min()) < 5.0:
+        return {"edge": edge_name, "valid": False, "reason": "low_contrast", "profile_count": len(profiles)}
+    gradient = np.abs(np.gradient(profile))
+    center_guess = float(np.argmax(gradient))
+    baseline_guess = float(np.percentile(profile, 10))
+    amplitude_guess = float(np.percentile(profile, 90) - baseline_guess)
+    try:
+        params, _ = curve_fit(
+            _erf_model,
+            x,
+            profile,
+            p0=[baseline_guess, amplitude_guess, center_guess, 2.0],
+            bounds=([-100.0, -300.0, 0.0, 0.15], [400.0, 400.0, len(profile) - 1.0, float(window_radius)]),
+            maxfev=5000,
+        )
+    except Exception as exc:
+        return {"edge": edge_name, "valid": False, "reason": f"fit_failed:{exc}", "profile_count": len(profiles)}
+    baseline, amplitude, center, sigma = [float(value) for value in params]
+    width = 2.563103131 * abs(sigma)
+    edge_margin = min(center, len(profile) - 1.0 - center)
+    valid = edge_margin >= 3.0 and width < 0.8 * len(profile)
+    reason = "" if valid else "edge_near_window_or_width_too_large"
     return {
-        "vertical_edge_10_90_px": _edge_width(vertical),
-        "horizontal_edge_10_90_px": _edge_width(horizontal),
+        "edge": edge_name,
+        "valid": valid,
+        "reason": reason,
+        "profile_count": len(profiles),
+        "window_px": len(profile),
+        "sigma_px": abs(sigma),
+        "width_10_90_px": width,
+        "fit_center_px": center,
+        "baseline": baseline,
+        "amplitude": amplitude,
+    }
+
+
+def _sample_profiles(
+    gray: np.ndarray,
+    bbox: tuple[int, int, int, int],
+    orientation: str,
+    edge_name: str,
+    edge_coordinate: int,
+    along_start: int,
+    along_end: int,
+    window_radius: int = 24,
+) -> dict[str, Any]:
+    profiles = []
+    if orientation == "vertical":
+        for along in range(along_start, along_end):
+            if 0 <= along < gray.shape[0]:
+                lo = max(0, edge_coordinate - window_radius)
+                hi = min(gray.shape[1], edge_coordinate + window_radius + 1)
+                if hi - lo == 2 * window_radius + 1:
+                    profiles.append(gray[along, lo:hi])
+    else:
+        for along in range(along_start, along_end):
+            if 0 <= along < gray.shape[1]:
+                lo = max(0, edge_coordinate - window_radius)
+                hi = min(gray.shape[0], edge_coordinate + window_radius + 1)
+                if hi - lo == 2 * window_radius + 1:
+                    profiles.append(gray[lo:hi, along])
+    return _fit_esf(profiles, edge_name, window_radius)
+
+
+def _edge_spread(full_frame: np.ndarray, bbox: tuple[int, int, int, int]) -> dict[str, Any]:
+    gray = cv2.cvtColor(full_frame, cv2.COLOR_BGR2GRAY)
+    x0, y0, x1, y1 = bbox
+    vertical_edges = [
+        _sample_profiles(gray, bbox, "vertical", "sign_left_outer", x0, y0 + 10, y1 - 10),
+        _sample_profiles(gray, bbox, "vertical", "sign_center_divider", (x0 + x1) // 2, y0 + 10, y1 - 10),
+        _sample_profiles(gray, bbox, "vertical", "sign_right_outer", x1, y0 + 10, y1 - 10),
+    ]
+    horizontal_edges = [
+        _sample_profiles(gray, bbox, "horizontal", "sign_top_outer", y0, x0 + 10, x1 - 10),
+        _sample_profiles(gray, bbox, "horizontal", "sign_bottom_outer", y1, x0 + 10, x1 - 10),
+    ]
+    valid_vertical = [row for row in vertical_edges if row["valid"]]
+    valid_horizontal = [row for row in horizontal_edges if row["valid"]]
+    return {
+        "vertical_edges": vertical_edges,
+        "horizontal_edges": horizontal_edges,
+        "vertical_sigma_px": float(np.median([row["sigma_px"] for row in valid_vertical])) if valid_vertical else None,
+        "vertical_width_10_90_px": float(np.median([row["width_10_90_px"] for row in valid_vertical])) if valid_vertical else None,
+        "horizontal_sigma_px": float(np.median([row["sigma_px"] for row in valid_horizontal])) if valid_horizontal else None,
+        "horizontal_width_10_90_px": float(np.median([row["width_10_90_px"] for row in valid_horizontal])) if valid_horizontal else None,
+        "valid_vertical_count": len(valid_vertical),
+        "valid_horizontal_count": len(valid_horizontal),
+    }
+
+
+def _background_edge_spread(full_frame: np.ndarray, roi: tuple[int, int, int, int]) -> dict[str, Any]:
+    x0, y0, x1, y1 = roi
+    gray = cv2.cvtColor(full_frame, cv2.COLOR_BGR2GRAY)
+    region = gray[y0:y1, x0:x1]
+    profile = np.mean(np.abs(np.gradient(region.astype(np.float32), axis=1)), axis=0)
+    margin = min(30, max(1, len(profile) // 5))
+    local_x = int(np.argmax(profile[margin:-margin]) + margin)
+    global_x = x0 + local_x
+    return {
+        "roi": list(roi),
+        "selected_edge": "strongest_vertical_gradient_in_background_roi",
+        "edge_coordinate": global_x,
+        "vertical": _sample_profiles(gray, roi, "vertical", "background_column_edge", global_x, y0 + 10, y1 - 10),
     }
 
 
@@ -268,9 +345,10 @@ def _flow_summary(frames: dict[int, np.ndarray], bboxes: dict[int, tuple[int, in
             "mean_magnitude_px": float(np.mean(magnitude)),
             "bbox_scale_x": float(scale_x),
             "bbox_scale_y": float(scale_y),
-            "trail_px_at_1_60": float(np.mean(magnitude) / 60.0),
-            "trail_px_at_1_120": float(np.mean(magnitude) / 120.0),
-            "trail_px_at_1_250": float(np.mean(magnitude) / 250.0),
+            "trail_px_at_1_60": float(np.mean(magnitude) * 30.0 * (1.0 / 60.0)),
+            "trail_px_at_1_120": float(np.mean(magnitude) * 30.0 * (1.0 / 120.0)),
+            "trail_px_at_1_250": float(np.mean(magnitude) * 30.0 * (1.0 / 250.0)),
+            "trail_formula": "flow_px_per_frame * fps_30 * exposure_seconds; previous version omitted fps_30",
         })
     return rows
 
@@ -313,41 +391,80 @@ def _plot_spectra(curves: dict[str, dict[str, Any]], path: Path) -> None:
     plt.close()
 
 
-def _ocr_probe(raw_crops: dict[int, np.ndarray], output: Path) -> dict[str, Any]:
+OCR_BIG = ["八德", "鶯歌"]
+OCR_SMALL = ["出口", "公里", "EXIT", "km", "Bade", "Yingge", "1½", "110乙"]
+
+
+def _ocr_scores(texts: list[str], confidences: list[float]) -> dict[str, Any]:
+    joined = " ".join(texts).lower().replace(" ", "")
+    hits = {truth: truth.lower() in joined for truth in GROUND_TRUTH}
+    return {
+        "hits": hits,
+        "hit_count": sum(hits.values()),
+        "big_text_hit_count": sum(hits[key] for key in OCR_BIG),
+        "small_text_hit_count": sum(hits[key] for key in OCR_SMALL),
+        "big_text_total": len(OCR_BIG),
+        "small_text_total": len(OCR_SMALL),
+        "mean_confidence": float(np.mean(confidences)) if confidences else None,
+    }
+
+
+def _ocr_probe(
+    raw_crops: dict[int, np.ndarray],
+    bboxes_for_ocr: dict[int, tuple[int, int, int, int]],
+    output: Path,
+) -> dict[str, Any]:
     result: dict[str, Any] = {
         "ground_truth_assumption": GROUND_TRUTH,
-        "paddleocr": {"available": False, "reason": "package unavailable"},
-        "easyocr": {"available": False, "reason": "not executed"},
-        "benchmark_inputs": [
-            {"input": "raw_frame_350_to_385", "count": len(raw_crops), "status": "unavailable"},
-            {"input": "raw_2x_bicubic_frame_350_to_385", "count": len(raw_crops), "status": "unavailable"},
-            {"input": "best_frame_existing_output", "count": 1, "status": "unavailable"},
-            {"input": "median_fusion_existing_output", "count": 1, "status": "unavailable"},
-            {"input": "contrast_after_fusion_existing_output", "count": 1, "status": "unavailable"},
-        ],
+        "engine": "unavailable",
+        "available": False,
+        "reason": "",
+        "inputs": {},
     }
-    try:
-        import easyocr  # type: ignore
+    worker = ROOT / "diagnostics" / "ocr_worker.py"
+    result["engine"] = "rapidocr-onnxruntime"
+    result["language"] = "en+ch"
 
-        model_dir = Path.home() / ".EasyOCR" / "model"
-        cached = list(model_dir.glob("*")) if model_dir.exists() else []
-        if not cached:
-            result["easyocr"] = {
-                "available": False,
-                "reason": "package installed but model cache absent; no download performed",
-            }
-            return result
-        reader = easyocr.Reader(["en"], gpu=False, download_enabled=False, verbose=False)
-        samples = {}
-        for frame, crop in list(raw_crops.items())[:3]:
-            output_rows = reader.readtext(crop, detail=1, paragraph=False)
-            samples[str(frame)] = [
-                {"text": row[1], "confidence": float(row[2])}
-                for row in output_rows
-            ]
-        result["easyocr"] = {"available": True, "language": "en", "samples": samples}
-    except Exception as exc:
-        result["easyocr"] = {"available": False, "reason": str(exc)}
+    def run_worker(arguments: list[str]) -> dict[str, Any]:
+        completed = subprocess.run(
+            [sys.executable, str(worker), *arguments],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        if completed.returncode != 0:
+            return {"available": False, "reason": f"worker_exit_{completed.returncode}", "stderr": completed.stderr[-1000:]}
+        try:
+            payload = json.loads(completed.stdout.strip().splitlines()[-1])
+        except Exception as exc:
+            return {"available": False, "reason": f"invalid_worker_json:{exc}", "stdout": completed.stdout[-1000:]}
+        if not payload.get("available"):
+            return payload
+        return {
+            **payload,
+            **_ocr_scores(payload.get("text", []), payload.get("confidence", [])),
+        }
+
+    frame_results = {}
+    for index, bbox in sorted(bboxes_for_ocr.items()):
+        frame_results[str(index)] = run_worker([
+            "--video", str(VIDEO), "--frame", str(index),
+            "--bbox", *(str(value) for value in bbox),
+        ])
+    result["available"] = any(row.get("available") for row in frame_results.values())
+    result["inputs"]["raw_frames_350_385"] = {"count": len(raw_crops), "frames": frame_results}
+    existing_paths = {
+        "best_frame": ROOT / "outputs" / "contrast_only" / "best_frame.png",
+        "median": ROOT / "outputs" / "road_signs" / "dynamic_sign" / "dynamic_sign_median.png",
+        "contrast_after_fusion": ROOT / "outputs" / "contrast_only" / "contrast_after_fusion.png",
+    }
+    for name, path in existing_paths.items():
+        result["inputs"][name] = {
+            "path": str(path.relative_to(ROOT)),
+            "available": path.exists(),
+            "result": run_worker(["--image", str(path)]) if path.exists() else None,
+        }
     return result
     if shutil.which("python") is None:
         return result
@@ -480,9 +597,9 @@ def run() -> dict[str, Any]:
     edge_rows = []
     size_rows = []
     for index, crop in raw_crops.items():
-        edge_rows.append({"frame": index, "roi": list(bboxes[index]), **_edge_spread(crop)})
+        edge_rows.append({"frame": index, "roi": list(bboxes[index]), **_edge_spread(frames[index], bboxes[index])})
         size_rows.append({"frame": index, "roi": list(bboxes[index]), **_text_size(crop)})
-    background_edge = _edge_spread(_raw_crop(frames[385], BACKGROUND_ROI))
+    background_edge = _background_edge_spread(frames[385], BACKGROUND_ROI)
     flow_rows = _flow_summary(frames, bboxes)
 
     existing = {
@@ -499,7 +616,7 @@ def run() -> dict[str, Any]:
             "spectrum": _spectrum_summary(image) if image is not None else None,
         }
     leave_one_out = _fusion_information(raw_crops, existing_metrics)
-    ocr = _ocr_probe(raw_crops, OUT)
+    ocr = _ocr_probe(raw_crops, bboxes, OUT)
     report = {
         "source": str(VIDEO.relative_to(ROOT)),
         "frame_range": [FRAME_START, FRAME_END],
@@ -539,10 +656,10 @@ def run() -> dict[str, Any]:
     }
     (OUT / "diagnosis.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     with (OUT / "frame_measurements.csv").open("w", newline="", encoding="utf-8") as handle:
-        fields = ["frame", "roi", "vertical_edge_10_90_px", "horizontal_edge_10_90_px"]
+        fields = ["frame", "roi", "vertical_sigma_px", "vertical_width_10_90_px", "horizontal_sigma_px", "horizontal_width_10_90_px", "valid_vertical_count", "valid_horizontal_count"]
         writer = csv.DictWriter(handle, fieldnames=fields)
         writer.writeheader()
-        writer.writerows(edge_rows)
+        writer.writerows({field: row.get(field) for field in fields} for row in edge_rows)
     return report
 
 
@@ -561,10 +678,24 @@ def write_report(data: dict[str, Any]) -> None:
     motion = data["motion_blur"]["per_transition"]
     sizes = data["text_size"]["per_frame"]
     sign_cutoffs = [row["sign_cutoff_cycles_per_pixel"] for row in spectra]
-    edge_v = [row["vertical_edge_10_90_px"] for row in edges if row["vertical_edge_10_90_px"] is not None]
-    edge_h = [row["horizontal_edge_10_90_px"] for row in edges if row["horizontal_edge_10_90_px"] is not None]
+    edge_v = [row["vertical_width_10_90_px"] for row in edges if row["vertical_width_10_90_px"] is not None]
+    edge_h = [row["horizontal_width_10_90_px"] for row in edges if row["horizontal_width_10_90_px"] is not None]
+    sigma_v = [row["vertical_sigma_px"] for row in edges if row["vertical_sigma_px"] is not None]
+    sigma_h = [row["horizontal_sigma_px"] for row in edges if row["horizontal_sigma_px"] is not None]
     large = [row["large_text_height_px"] for row in sizes if row["large_text_height_px"] is not None]
     strokes = [row["estimated_stroke_width_px"] for row in sizes if row["estimated_stroke_width_px"] is not None]
+    ocr_inputs = data["ocr"].get("inputs", {})
+    ocr_summary = {}
+    for name, payload in ocr_inputs.items():
+        rows = list(payload.get("frames", {}).values()) if "frames" in payload else ([payload["result"]] if payload.get("result") else [])
+        valid_rows = [row for row in rows if row.get("available")]
+        ocr_summary[name] = {
+            "runs": len(rows),
+            "available_runs": len(valid_rows),
+            "mean_hit_count": float(np.mean([row.get("hit_count", 0) for row in valid_rows])) if valid_rows else None,
+            "big_hit_count": float(np.mean([row.get("big_text_hit_count", 0) for row in valid_rows])) if valid_rows else None,
+            "small_hit_count": float(np.mean([row.get("small_text_hit_count", 0) for row in valid_rows])) if valid_rows else None,
+        }
     report = f"""# 原始資訊上限診斷：`data/road.mp4`
 
 ## 一頁摘要
@@ -574,9 +705,10 @@ def write_report(data: dict[str, Any]) -> None:
 - ffprobe：codec=`{compression.get('codec')}`, pix_fmt=`{compression.get('pix_fmt')}`, bitrate=`{compression.get('bitrate_bps')}` bps，bits/pixel/frame=`{compression.get('bits_per_pixel_per_frame')}`。
 - frame 350–385 的 I/P/B 分佈：`{compression.get('pict_type_counts')}`；packet size 與全幀 Laplacian 的相關係數：`{_fmt(compression.get('packet_laplacian_correlation'))}`。
 - 路牌徑向頻譜 cutoff 估計範圍：`{_fmt(min(sign_cutoffs))}`–`{_fmt(max(sign_cutoffs))}` cycles/pixel；這是操作性 threshold，不是光學 MTF。
-- 路牌 edge spread 估計：垂直中位數 `{_fmt(float(np.median(edge_v)) if edge_v else None)}` px、水平中位數 `{_fmt(float(np.median(edge_h)) if edge_h else None)}` px；水泥柱 frame 385 對照見 JSON。
+- 路牌 ESF（erf fit、至少 30 條 profile）估計：垂直 sigma 中位數 `{_fmt(float(np.median(sigma_v)) if sigma_v else None)}` px、10–90 寬度 `{_fmt(float(np.median(edge_v)) if edge_v else None)}` px；水平 sigma `{_fmt(float(np.median(sigma_h)) if sigma_h else None)}` px、寬度 `{_fmt(float(np.median(edge_h)) if edge_h else None)}` px；水泥柱 frame 385 對照見 JSON。
+- frame 385 水泥柱背景 ESF：`{_fmt(data['edge_spread']['background_frame_385']['vertical'].get('sigma_px'))}` sigma、`{_fmt(data['edge_spread']['background_frame_385']['vertical'].get('width_10_90_px'))}` px 10–90；若 invalid 已從統計排除。
 - 中文大字高度估計中位數 `{_fmt(float(np.median(large)) if large else None)}` px；估計筆畫寬度中位數 `{_fmt(float(np.median(strokes)) if strokes else None)}` px。
-- OCR：PaddleOCR unavailable；EasyOCR 狀態見 `diagnosis.json`，不會因套件存在就假稱已完成 OCR。
+- OCR：engine=`{data['ocr'].get('engine')}`, available=`{data['ocr'].get('available')}`；逐項命中統計見下方與 `diagnosis.json`。
 
 **初步判定：** 原始影片對細小筆畫的資訊上限具有高影響證據；運動/失焦與低有效頻寬是主要候選。這份診斷沒有產生新的增強、銳化、超解析或 final pipeline 輸出，因此不能用它宣稱任何演算法改善。
 
@@ -602,11 +734,11 @@ frame 385 整張原始畫面做 1/2、1/3、1/4、1/6 降採樣再 bicubic 回�
 
 ## 診斷 4：edge spread
 
-逐幀在路牌 crop 的最強垂直/水平梯度剖面計算 10–90% 寬度；對照 frame 385 的固定水泥柱 ROI。原始每幀數值在 `frame_measurements.csv`。方向差異若顯著，支持方向性運動模糊；若路牌與背景都寬，較支持全局失焦/光學限制。
+固定使用路牌左右外框與中間分隔線（垂直邊緣，沿水平方向取樣）、上下外框（水平邊緣，沿垂直方向取樣），每個 ESF 沿邊緣平均至少 30 條 profile，以 erf 擬合 sigma 與 10–90 width。fit fail 或寬度過接近 49 px 取樣窗口會標 invalid 並排除統計；frame、ROI、profile count、invalid reason 在 `diagnosis.json`，摘要 CSV 在 `frame_measurements.csv`。水泥柱使用固定背景 ROI 內最強垂直梯度邊緣作對照。
 
 ## 診斷 5：運動模糊
 
-Farneback flow 在原始 full-frame 上計算，再取當幀路牌 bbox 內位移；同時記錄 bbox 尺度變化。曝光 1/60、1/120、1/250 的拖尾只是情境估計，不能冒充相機曝光資訊。沒有用 radial FFT 宣稱唯一 blur kernel；方向性只能做交叉證據。
+Farneback flow 在原始 full-frame 上計算，再取當幀路牌 bbox 內位移；同時記錄 bbox 尺度變化。拖尾公式為 `flow_px_per_frame × 30 × exposure_seconds`；1/60、1/120、1/250 的舊版本少乘 30，本版已修正並在每筆 flow record 標註。曝光仍未知，故只是情境估計。
 
 ## 診斷 6：字元尺寸
 
@@ -623,7 +755,7 @@ Farneback flow 在原始 full-frame 上計算，再取當幀路牌 bbox 內位�
 
 ## 診斷 8：OCR 基準
 
-暫定真值為：`{'、'.join(data['ground_truth']['strings'])}`。PaddleOCR 未安裝；EasyOCR 雖有套件但若模型未快取則不下載、不執行。這不是 OCR 失敗被隱藏，而是環境可重現性限制。任何可用結果都會列出實際文字與 confidence；沒有結果就標 unavailable。
+暫定真值為：`{'、'.join(data['ground_truth']['strings'])}`。使用 `rapidocr-onnxruntime`，逐次以隔離 worker 執行，輸入為 36 個原始 crop、既有 best frame、既有 median 與既有 contrast_after_fusion；沒有新增影像。每個輸入都記錄辨識文字、confidence、10 個真值命中，以及大字/小字命中。摘要：`{json.dumps(ocr_summary, ensure_ascii=False)}`。
 
 ## 判定表
 
@@ -632,7 +764,7 @@ Farneback flow 在原始 full-frame 上計算，再取當幀路牌 bbox 內位�
 | 資訊上限是否由原始影片決定？ | 支持，至少是主要限制之一 | 強 | 原始 ROI 頻譜、edge spread、筆畫像素尺寸與降採樣測試共同支持 |
 | 主要模糊來源 | 運動/失焦/低有效細節優先；壓縮需看 packet/頻譜，不單獨定罪 | 中 | flow、方向 edge spread、路牌/背景頻譜對照 |
 | 多幀融合是否增加真實解析度？ | 不支持宣稱；較安全解釋是穩定化/降噪 | 中 | raw-crop leave-one-out proxy 受尺度/插值混淆，未得到可歸因於真實高頻新增的證據 |
-| 是否有任何版本可被 OCR 讀出？ | `{data['ocr'].get('easyocr', {}).get('available')}`；PaddleOCR unavailable | 弱/未知 | OCR 依賴與模型快取限制，不能以肉眼推測 CER |
+| 是否有任何版本可被 OCR 讀出？ | `{data['ocr'].get('available')}` | 中（若 worker 成功）/弱（若 unavailable） | RapidOCR 實際輸出與命中表；不可用時保留原生 worker exit 原因 |
 
 ## 下一步（限定選項）
 

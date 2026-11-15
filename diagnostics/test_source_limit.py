@@ -11,10 +11,10 @@ def test_source_measurements_are_finite() -> None:
 
     downsample = _downsample_test(image)
     spectrum = _spectrum_summary(image)
-    edge = _edge_spread(image)
+    edge = _edge_spread(image, (25, 30, 155, 90))
     sizes = _text_size(image)
 
     assert len(downsample["round_trip"]) == 4
     assert 0.0 <= spectrum["cutoff_cycles_per_pixel"] <= 0.5
-    assert edge["vertical_edge_10_90_px"] is None or edge["vertical_edge_10_90_px"] >= 0.0
+    assert edge["vertical_sigma_px"] is None or edge["vertical_sigma_px"] >= 0.0
     assert sizes["sign_width_px"] == 180.0
