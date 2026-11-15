@@ -1,0 +1,538 @@
+{
+  "video": ".\\data\\road.mp4",
+  "frame_range": [
+    350,
+    385
+  ],
+  "search_region": [
+    2000,
+    900,
+    3700,
+    1800
+  ],
+  "selected_frames": [
+    385,
+    384,
+    376,
+    373,
+    383
+  ],
+  "method": {
+    "color_channel": "BGR R channel",
+    "glare": "HSV high-value low-saturation mask, Telea inpainting, excluded from foreground",
+    "illumination": "single-scale division by Gaussian illumination estimate",
+    "contrast": "CLAHE on corrected R channel",
+    "text_features": "white top-hat plus adaptive Gaussian threshold",
+    "fusion": "sign-only canonical crops, ECC alignment, median fusion"
+  },
+  "per_frame_quality": [
+    {
+      "frame_idx": 350,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.16106666666666666,
+      "foreground_edge_density": 0.04385185185185185,
+      "enhanced_local_contrast": 65.40150734239535
+    },
+    {
+      "frame_idx": 351,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.1617925925925926,
+      "foreground_edge_density": 0.04391111111111111,
+      "enhanced_local_contrast": 65.03494272090873
+    },
+    {
+      "frame_idx": 352,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.15965185185185185,
+      "foreground_edge_density": 0.04415555555555556,
+      "enhanced_local_contrast": 65.29478317163421
+    },
+    {
+      "frame_idx": 353,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.16191111111111112,
+      "foreground_edge_density": 0.04412592592592592,
+      "enhanced_local_contrast": 65.53890336865146
+    },
+    {
+      "frame_idx": 354,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.16242222222222222,
+      "foreground_edge_density": 0.045874074074074074,
+      "enhanced_local_contrast": 64.72526529218692
+    },
+    {
+      "frame_idx": 355,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.1614962962962963,
+      "foreground_edge_density": 0.04508148148148148,
+      "enhanced_local_contrast": 64.98171516813093
+    },
+    {
+      "frame_idx": 356,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.1607851851851852,
+      "foreground_edge_density": 0.04504444444444444,
+      "enhanced_local_contrast": 65.12871665457641
+    },
+    {
+      "frame_idx": 357,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.16177037037037037,
+      "foreground_edge_density": 0.04421481481481482,
+      "enhanced_local_contrast": 65.64159128680518
+    },
+    {
+      "frame_idx": 358,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.15756296296296296,
+      "foreground_edge_density": 0.043614814814814815,
+      "enhanced_local_contrast": 65.56400303002393
+    },
+    {
+      "frame_idx": 359,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.15962222222222222,
+      "foreground_edge_density": 0.04448888888888889,
+      "enhanced_local_contrast": 65.62020099120294
+    },
+    {
+      "frame_idx": 360,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.15946666666666667,
+      "foreground_edge_density": 0.04538518518518519,
+      "enhanced_local_contrast": 65.8445816298263
+    },
+    {
+      "frame_idx": 361,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.1603925925925926,
+      "foreground_edge_density": 0.04566666666666667,
+      "enhanced_local_contrast": 65.83287813027437
+    },
+    {
+      "frame_idx": 362,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.16065925925925925,
+      "foreground_edge_density": 0.04555555555555556,
+      "enhanced_local_contrast": 66.01251356049295
+    },
+    {
+      "frame_idx": 363,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.16345185185185185,
+      "foreground_edge_density": 0.04622222222222222,
+      "enhanced_local_contrast": 66.05148809934397
+    },
+    {
+      "frame_idx": 364,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.1606,
+      "foreground_edge_density": 0.04560740740740741,
+      "enhanced_local_contrast": 66.47675114706087
+    },
+    {
+      "frame_idx": 365,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.16127407407407407,
+      "foreground_edge_density": 0.046,
+      "enhanced_local_contrast": 66.41111879463784
+    },
+    {
+      "frame_idx": 366,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.1633111111111111,
+      "foreground_edge_density": 0.04766666666666667,
+      "enhanced_local_contrast": 66.16683469045888
+    },
+    {
+      "frame_idx": 367,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.1622148148148148,
+      "foreground_edge_density": 0.04702962962962963,
+      "enhanced_local_contrast": 66.59419725520854
+    },
+    {
+      "frame_idx": 368,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.1613925925925926,
+      "foreground_edge_density": 0.04711111111111111,
+      "enhanced_local_contrast": 66.34274397522663
+    },
+    {
+      "frame_idx": 369,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.16111851851851852,
+      "foreground_edge_density": 0.04675555555555556,
+      "enhanced_local_contrast": 66.22833667272639
+    },
+    {
+      "frame_idx": 370,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.16007407407407406,
+      "foreground_edge_density": 0.04714814814814815,
+      "enhanced_local_contrast": 66.14358199609656
+    },
+    {
+      "frame_idx": 371,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.16463703703703703,
+      "foreground_edge_density": 0.04792592592592593,
+      "enhanced_local_contrast": 66.15997813470537
+    },
+    {
+      "frame_idx": 372,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.16246666666666668,
+      "foreground_edge_density": 0.047903703703703705,
+      "enhanced_local_contrast": 66.73914022674313
+    },
+    {
+      "frame_idx": 373,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.1638074074074074,
+      "foreground_edge_density": 0.048851851851851855,
+      "enhanced_local_contrast": 66.64140302887749
+    },
+    {
+      "frame_idx": 374,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.16268148148148148,
+      "foreground_edge_density": 0.04841481481481481,
+      "enhanced_local_contrast": 66.38217863058571
+    },
+    {
+      "frame_idx": 375,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.16114074074074075,
+      "foreground_edge_density": 0.04895555555555556,
+      "enhanced_local_contrast": 66.16284532838392
+    },
+    {
+      "frame_idx": 376,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.16133333333333333,
+      "foreground_edge_density": 0.04981481481481481,
+      "enhanced_local_contrast": 66.39742927972061
+    },
+    {
+      "frame_idx": 377,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.1604962962962963,
+      "foreground_edge_density": 0.04868148148148148,
+      "enhanced_local_contrast": 66.54467994270493
+    },
+    {
+      "frame_idx": 378,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.1579037037037037,
+      "foreground_edge_density": 0.04834814814814815,
+      "enhanced_local_contrast": 66.45016367850317
+    },
+    {
+      "frame_idx": 379,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.1613037037037037,
+      "foreground_edge_density": 0.04820740740740741,
+      "enhanced_local_contrast": 66.17867416406531
+    },
+    {
+      "frame_idx": 380,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.1594,
+      "foreground_edge_density": 0.04760740740740741,
+      "enhanced_local_contrast": 66.5147393300671
+    },
+    {
+      "frame_idx": 381,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.15707407407407406,
+      "foreground_edge_density": 0.047207407407407406,
+      "enhanced_local_contrast": 66.76372663172222
+    },
+    {
+      "frame_idx": 382,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.1595777777777778,
+      "foreground_edge_density": 0.0474,
+      "enhanced_local_contrast": 66.65147599521103
+    },
+    {
+      "frame_idx": 383,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.15842962962962964,
+      "foreground_edge_density": 0.04761481481481482,
+      "enhanced_local_contrast": 66.95541740718458
+    },
+    {
+      "frame_idx": 384,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.16056296296296296,
+      "foreground_edge_density": 0.049022222222222224,
+      "enhanced_local_contrast": 66.90837285956127
+    },
+    {
+      "frame_idx": 385,
+      "glare_ratio": 0.0,
+      "foreground_ratio": 0.16325925925925927,
+      "foreground_edge_density": 0.049933333333333337,
+      "enhanced_local_contrast": 66.82017575724477
+    }
+  ],
+  "outputs": {
+    "text_enhanced_median": {
+      "path": "text_enhanced_median.png",
+      "metrics": {
+        "sharpness": 14345.41785812378,
+        "laplacian": 555.72998046875,
+        "edge_density": 0.08505925925925927,
+        "foreground_ratio": 0.14167407407407406,
+        "foreground_background_contrast": 97.71269525018243,
+        "foreground_mean": 196.52133221792326,
+        "background_mean": 98.80863696774082
+      },
+      "diagnostics": {
+        "mode": "fusion",
+        "reference_frame_idx": 385,
+        "alignment_bbox": [
+          0,
+          0,
+          450,
+          300
+        ],
+        "frame_scores": [
+          {
+            "frame_idx": 385,
+            "score": 27212.390869140625
+          },
+          {
+            "frame_idx": 384,
+            "score": 26969.54298400879
+          },
+          {
+            "frame_idx": 376,
+            "score": 26041.905670166016
+          },
+          {
+            "frame_idx": 373,
+            "score": 25805.442611694336
+          },
+          {
+            "frame_idx": 383,
+            "score": 25718.5704498291
+          }
+        ],
+        "accepted": [
+          {
+            "frame_idx": 385,
+            "correlation": 1.0
+          },
+          {
+            "frame_idx": 384,
+            "correlation": 0.9615394740557488
+          },
+          {
+            "frame_idx": 376,
+            "correlation": 0.8695345176106167
+          },
+          {
+            "frame_idx": 373,
+            "correlation": 0.8885346812700604
+          },
+          {
+            "frame_idx": 383,
+            "correlation": 0.918554959558874
+          }
+        ],
+        "weights": [
+          {
+            "frame_idx": 385,
+            "weight": 27212.390869140625
+          },
+          {
+            "frame_idx": 384,
+            "weight": 22814.838683387865
+          },
+          {
+            "frame_idx": 376,
+            "weight": 17335.673669932094
+          },
+          {
+            "frame_idx": 373,
+            "weight": 17779.78756888301
+          },
+          {
+            "frame_idx": 383,
+            "weight": 19406.557895984908
+          }
+        ],
+        "quality": [
+          {
+            "frame_idx": 385,
+            "motion_quality": 1.0,
+            "occlusion_ratio": 0.0
+          },
+          {
+            "frame_idx": 384,
+            "motion_quality": 0.8797852918533249,
+            "occlusion_ratio": 0.03978518518518519
+          },
+          {
+            "frame_idx": 376,
+            "motion_quality": 0.7655633513962098,
+            "occlusion_ratio": 0.08057037037037038
+          },
+          {
+            "frame_idx": 373,
+            "motion_quality": 0.7754269153955357,
+            "occlusion_ratio": 0.07540740740740741
+          },
+          {
+            "frame_idx": 383,
+            "motion_quality": 0.8214791421145152,
+            "occlusion_ratio": 0.0609037037037037
+          }
+        ],
+        "rejected": [],
+        "processed_frames": 5,
+        "elapsed_ms": 677.6860000099987
+      }
+    },
+    "foreground_mask_median": {
+      "path": "foreground_mask_median.png",
+      "metrics": {
+        "sharpness": 52249.907623291016,
+        "laplacian": 5445.22216796875,
+        "edge_density": 0.05308148148148148,
+        "foreground_ratio": 1.0,
+        "foreground_background_contrast": 44.339822222222224,
+        "foreground_mean": 44.339822222222224,
+        "background_mean": 0.0
+      },
+      "diagnostics": {
+        "mode": "fusion",
+        "reference_frame_idx": 385,
+        "alignment_bbox": [
+          0,
+          0,
+          450,
+          300
+        ],
+        "frame_scores": [
+          {
+            "frame_idx": 385,
+            "score": 62951.976135253906
+          },
+          {
+            "frame_idx": 376,
+            "score": 62802.3092956543
+          },
+          {
+            "frame_idx": 384,
+            "score": 61792.03927612305
+          },
+          {
+            "frame_idx": 373,
+            "score": 61526.169006347656
+          },
+          {
+            "frame_idx": 383,
+            "score": 60105.36169433594
+          }
+        ],
+        "accepted": [
+          {
+            "frame_idx": 385,
+            "correlation": 1.0
+          },
+          {
+            "frame_idx": 376,
+            "correlation": 0.796422046033009
+          },
+          {
+            "frame_idx": 384,
+            "correlation": 0.9260249691755136
+          },
+          {
+            "frame_idx": 373,
+            "correlation": 0.8199775394817802
+          },
+          {
+            "frame_idx": 383,
+            "correlation": 0.8602108098823765
+          }
+        ],
+        "weights": [
+          {
+            "frame_idx": 385,
+            "weight": 62951.976135253906
+          },
+          {
+            "frame_idx": 376,
+            "weight": 35925.770135827
+          },
+          {
+            "frame_idx": 384,
+            "weight": 47550.95868454279
+          },
+          {
+            "frame_idx": 373,
+            "weight": 37034.05931966069
+          },
+          {
+            "frame_idx": 383,
+            "weight": 40075.68473859771
+          }
+        ],
+        "quality": [
+          {
+            "frame_idx": 385,
+            "motion_quality": 1.0,
+            "occlusion_ratio": 0.0
+          },
+          {
+            "frame_idx": 376,
+            "motion_quality": 0.7182691274127933,
+            "occlusion_ratio": 0.09594814814814814
+          },
+          {
+            "frame_idx": 384,
+            "motion_quality": 0.8310057944232577,
+            "occlusion_ratio": 0.06319259259259259
+          },
+          {
+            "frame_idx": 373,
+            "motion_quality": 0.7340734000826146,
+            "occlusion_ratio": 0.09085185185185185
+          },
+          {
+            "frame_idx": 383,
+            "motion_quality": 0.7751091090515391,
+            "occlusion_ratio": 0.07605925925925926
+          }
+        ],
+        "rejected": [],
+        "processed_frames": 5,
+        "elapsed_ms": 586.0082999570295
+      }
+    },
+    "existing_dynamic_final": {
+      "path": "outputs/road_signs/dynamic_sign/final_verified.png",
+      "metrics": {
+        "sharpness": 5586.467975616455,
+        "laplacian": 76.62710571289062,
+        "edge_density": 0.07063703703703704,
+        "foreground_ratio": 0.1562962962962963,
+        "foreground_background_contrast": 48.58223847309313,
+        "foreground_mean": 157.14094786729856,
+        "background_mean": 108.55870939420544
+      }
+    }
+  },
+  "contact_sheet": "text_separation_contact_sheet.png",
+  "limitations": [
+    "Foreground masks are a separation aid, not recovered ground-truth characters.",
+    "Top-hat/adaptive thresholds can miss low-contrast or thick strokes and can retain foliage-like bright structures.",
+    "The output improves separability/contrast; it does not restore text absent from source frames."
+  ]
+}

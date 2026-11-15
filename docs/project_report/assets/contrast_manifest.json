@@ -1,0 +1,434 @@
+{
+  "video": "data\\road.mp4",
+  "frame_range": [
+    350,
+    385
+  ],
+  "detected_frames": 36,
+  "selected_frames": [
+    385,
+    384,
+    383,
+    376,
+    375
+  ],
+  "reference_frame": 385,
+  "hypothesis": {
+    "parallel_lines_from_misregistration": {
+      "status": "not_supported",
+      "evidence": {
+        "alignment_correlations": [
+          1.0,
+          0.9940803210488958,
+          0.9901993428234055,
+          0.9891473599751347,
+          0.9871205624716615
+        ],
+        "warp_residual_mean": 2.201407901234568,
+        "edge_iou_mean": 0.42738447129473733,
+        "edge_iou_min": 0.18506084767100295,
+        "edge_disagreement_mean": 0.02088
+      }
+    },
+    "directional_frequency_structure": {
+      "bin_degrees": 10.0,
+      "peak_angle_degrees": 5.0,
+      "energies": [
+        7.828420639038086,
+        7.131585121154785,
+        6.844294548034668,
+        6.646631240844727,
+        6.518808841705322,
+        6.426494121551514,
+        6.446508884429932,
+        6.5708770751953125,
+        7.02146577835083,
+        7.109448432922363,
+        6.559104919433594,
+        6.419150352478027,
+        6.380024433135986,
+        6.398120880126953,
+        6.4680657386779785,
+        6.626920700073242,
+        6.948132514953613,
+        7.5311079025268555
+      ],
+      "anisotropy_ratio": 1.1561959717319963
+    },
+    "interpretation": "Parallel edge pairs after alignment support residual misregistration or scale/warp error; if residuals are low while edge pairs remain in each frame, the artifact is more consistent with single-frame blur or sharpening halos."
+  },
+  "outputs": {
+    "best_frame": {
+      "path": "best_frame.png",
+      "metrics": {
+        "sharpness": 971.191623210907,
+        "laplacian": 16.275043487548828,
+        "local_contrast": 25.380560695800167,
+        "edge_density": 0.026222222222222223
+      }
+    },
+    "median_aligned": {
+      "path": "median_aligned.png",
+      "metrics": {
+        "sharpness": 2816.878074645996,
+        "laplacian": 49.26633834838867,
+        "local_contrast": 39.87235144631886,
+        "edge_density": 0.052644444444444445
+      }
+    },
+    "contrast_after_fusion": {
+      "path": "contrast_after_fusion.png",
+      "metrics": {
+        "sharpness": 5423.9470500946045,
+        "laplacian": 137.57528686523438,
+        "local_contrast": 52.16215656641513,
+        "edge_density": 0.06534814814814814
+      }
+    }
+  },
+  "sharpening_comparison": {
+    "lab_clahe": {
+      "local_contrast": 42.58595657348633,
+      "edge_spread_proxy": 193.85906982421875,
+      "halo_ratio": 0.0,
+      "overshoot_ratio": 0.0,
+      "mean_change": 0.0,
+      "temporal_std": 3.346989870071411
+    },
+    "unsharp_l": {
+      "local_contrast": 43.109901428222656,
+      "edge_spread_proxy": 193.85906982421875,
+      "halo_ratio": 0.00036010082823190496,
+      "overshoot_ratio": 0.0,
+      "mean_change": 1.0599629878997803,
+      "temporal_std": 3.6478848457336426
+    },
+    "bilateral_unsharp_l": {
+      "local_contrast": 42.78531265258789,
+      "edge_spread_proxy": 193.85906982421875,
+      "halo_ratio": 0.0,
+      "overshoot_ratio": 0.0,
+      "mean_change": 0.7425037026405334,
+      "temporal_std": 3.5803134441375732
+    },
+    "constrained_laplacian_l": {
+      "local_contrast": 43.21343231201172,
+      "edge_spread_proxy": 193.85906982421875,
+      "halo_ratio": 0.0,
+      "overshoot_ratio": 0.0,
+      "mean_change": 1.7689111232757568,
+      "temporal_std": 3.9026503562927246
+    }
+  },
+  "sharpening_decision": {
+    "primary": "lab_clahe",
+    "accepted_as_final": [
+      "lab_clahe"
+    ],
+    "rejected_as_final": {
+      "unsharp_l": "slightly higher halo and temporal variation than Lab CLAHE",
+      "bilateral_unsharp_l": "temporal variation increased without reliable edge-spread gain",
+      "constrained_laplacian_l": "largest temporal variation; sharper edges may be synthetic"
+    }
+  },
+  "records": [
+    {
+      "frame_idx": 350,
+      "sharpness": 636.8302768468857,
+      "local_contrast": 17.270083216624517,
+      "edge_density": 0.007414814814814815,
+      "flow_from_previous": 0.0,
+      "selection_score": 4.743018273999077
+    },
+    {
+      "frame_idx": 351,
+      "sharpness": 640.3345073461533,
+      "local_contrast": 17.204217423284746,
+      "edge_density": 0.008807407407407408,
+      "flow_from_previous": 1.1005637645721436,
+      "selection_score": 4.65786345061474
+    },
+    {
+      "frame_idx": 352,
+      "sharpness": 644.6845703125,
+      "local_contrast": 17.187208315166146,
+      "edge_density": 0.006162962962962963,
+      "flow_from_previous": 1.8932926654815674,
+      "selection_score": 4.5348959499552475
+    },
+    {
+      "frame_idx": 353,
+      "sharpness": 694.1953496932983,
+      "local_contrast": 17.166653498894625,
+      "edge_density": 0.014637037037037037,
+      "flow_from_previous": 0.6941484808921814,
+      "selection_score": 4.8122138853938
+    },
+    {
+      "frame_idx": 354,
+      "sharpness": 676.8886938095093,
+      "local_contrast": 17.17989224301135,
+      "edge_density": 0.011955555555555556,
+      "flow_from_previous": 0.5461264848709106,
+      "selection_score": 4.785151612773738
+    },
+    {
+      "frame_idx": 355,
+      "sharpness": 688.4630424976349,
+      "local_contrast": 17.228415537287,
+      "edge_density": 0.009333333333333334,
+      "flow_from_previous": 0.9211147427558899,
+      "selection_score": 4.723841466480746
+    },
+    {
+      "frame_idx": 356,
+      "sharpness": 699.8977720737457,
+      "local_contrast": 17.19054882310353,
+      "edge_density": 0.013718518518518519,
+      "flow_from_previous": 1.1435350179672241,
+      "selection_score": 4.763082241610737
+    },
+    {
+      "frame_idx": 357,
+      "sharpness": 687.5774528980255,
+      "local_contrast": 17.21051242147722,
+      "edge_density": 0.010725925925925925,
+      "flow_from_previous": 1.7286940813064575,
+      "selection_score": 4.6610459377934985
+    },
+    {
+      "frame_idx": 358,
+      "sharpness": 668.8902833461761,
+      "local_contrast": 17.115541428938393,
+      "edge_density": 0.008407407407407407,
+      "flow_from_previous": 0.986616313457489,
+      "selection_score": 4.68550671103265
+    },
+    {
+      "frame_idx": 359,
+      "sharpness": 674.9453976154327,
+      "local_contrast": 17.042327689376787,
+      "edge_density": 0.010074074074074074,
+      "flow_from_previous": 0.5483032464981079,
+      "selection_score": 4.757538607167136
+    },
+    {
+      "frame_idx": 360,
+      "sharpness": 691.3803868293762,
+      "local_contrast": 17.078149210158706,
+      "edge_density": 0.011859259259259259,
+      "flow_from_previous": 1.1931164264678955,
+      "selection_score": 4.72928369287762
+    },
+    {
+      "frame_idx": 361,
+      "sharpness": 716.4644956588745,
+      "local_contrast": 17.097393168983828,
+      "edge_density": 0.014318518518518519,
+      "flow_from_previous": 0.6018202900886536,
+      "selection_score": 4.834555615449451
+    },
+    {
+      "frame_idx": 362,
+      "sharpness": 694.4122922420502,
+      "local_contrast": 16.994875145335484,
+      "edge_density": 0.0134,
+      "flow_from_previous": 0.9269934892654419,
+      "selection_score": 4.773888675781327
+    },
+    {
+      "frame_idx": 363,
+      "sharpness": 761.7578277587891,
+      "local_contrast": 16.962515470065412,
+      "edge_density": 0.016,
+      "flow_from_previous": 1.0012555122375488,
+      "selection_score": 4.841659906529693
+    },
+    {
+      "frame_idx": 364,
+      "sharpness": 754.5223846435547,
+      "local_contrast": 16.92549416445179,
+      "edge_density": 0.017066666666666667,
+      "flow_from_previous": 0.9640868902206421,
+      "selection_score": 4.8486439659136416
+    },
+    {
+      "frame_idx": 365,
+      "sharpness": 805.6998155117035,
+      "local_contrast": 17.07965761644315,
+      "edge_density": 0.0218,
+      "flow_from_previous": 0.645103394985199,
+      "selection_score": 4.954063358974185
+    },
+    {
+      "frame_idx": 366,
+      "sharpness": 821.7834236621857,
+      "local_contrast": 17.127584458764137,
+      "edge_density": 0.018029629629629628,
+      "flow_from_previous": 0.645982027053833,
+      "selection_score": 4.9385129707435445
+    },
+    {
+      "frame_idx": 367,
+      "sharpness": 785.2132003307343,
+      "local_contrast": 17.045519919827292,
+      "edge_density": 0.019777777777777776,
+      "flow_from_previous": 1.1307672262191772,
+      "selection_score": 4.8768505199195396
+    },
+    {
+      "frame_idx": 368,
+      "sharpness": 772.7568900585175,
+      "local_contrast": 16.950108568369295,
+      "edge_density": 0.015377777777777778,
+      "flow_from_previous": 0.8575543165206909,
+      "selection_score": 4.858103978494588
+    },
+    {
+      "frame_idx": 369,
+      "sharpness": 772.9234807491302,
+      "local_contrast": 16.928647143908545,
+      "edge_density": 0.01871851851851852,
+      "flow_from_previous": 1.0855787992477417,
+      "selection_score": 4.862905956596594
+    },
+    {
+      "frame_idx": 370,
+      "sharpness": 826.0495858192444,
+      "local_contrast": 16.907011313228136,
+      "edge_density": 0.018822222222222223,
+      "flow_from_previous": 1.0381097793579102,
+      "selection_score": 4.904592825917416
+    },
+    {
+      "frame_idx": 371,
+      "sharpness": 802.6531612873077,
+      "local_contrast": 16.856805481093826,
+      "edge_density": 0.018207407407407408,
+      "flow_from_previous": 1.680965542793274,
+      "selection_score": 4.8189555368567065
+    },
+    {
+      "frame_idx": 372,
+      "sharpness": 838.7957310676575,
+      "local_contrast": 16.892246126818026,
+      "edge_density": 0.022977777777777778,
+      "flow_from_previous": 0.5553380250930786,
+      "selection_score": 4.9895828280620504
+    },
+    {
+      "frame_idx": 373,
+      "sharpness": 853.4754693508148,
+      "local_contrast": 16.83363117288398,
+      "edge_density": 0.02528148148148148,
+      "flow_from_previous": 0.9816700220108032,
+      "selection_score": 4.9692567894566135
+    },
+    {
+      "frame_idx": 374,
+      "sharpness": 837.2989954948425,
+      "local_contrast": 16.849779713017885,
+      "edge_density": 0.02131111111111111,
+      "flow_from_previous": 0.4679115414619446,
+      "selection_score": 4.985825075926847
+    },
+    {
+      "frame_idx": 375,
+      "sharpness": 832.248904466629,
+      "local_contrast": 16.866414587408567,
+      "edge_density": 0.022214814814814816,
+      "flow_from_previous": 0.4298343062400818,
+      "selection_score": 4.992544788494752
+    },
+    {
+      "frame_idx": 376,
+      "sharpness": 836.3166120052338,
+      "local_contrast": 17.013667789061337,
+      "edge_density": 0.023303703703703705,
+      "flow_from_previous": 0.5187090039253235,
+      "selection_score": 4.995673898137317
+    },
+    {
+      "frame_idx": 377,
+      "sharpness": 843.7880728244781,
+      "local_contrast": 17.190348756148747,
+      "edge_density": 0.019925925925925927,
+      "flow_from_previous": 0.7243157029151917,
+      "selection_score": 4.960481296052325
+    },
+    {
+      "frame_idx": 378,
+      "sharpness": 848.5722897052765,
+      "local_contrast": 17.306205352483598,
+      "edge_density": 0.021177777777777778,
+      "flow_from_previous": 0.5531888604164124,
+      "selection_score": 4.991319928583462
+    },
+    {
+      "frame_idx": 379,
+      "sharpness": 852.9259910583496,
+      "local_contrast": 17.27455394146382,
+      "edge_density": 0.018266666666666667,
+      "flow_from_previous": 1.064069390296936,
+      "selection_score": 4.921416903864861
+    },
+    {
+      "frame_idx": 380,
+      "sharpness": 843.6390228271484,
+      "local_contrast": 17.399332089691047,
+      "edge_density": 0.02365925925925926,
+      "flow_from_previous": 1.0257532596588135,
+      "selection_score": 4.95829199153974
+    },
+    {
+      "frame_idx": 381,
+      "sharpness": 845.7709522247314,
+      "local_contrast": 17.372818219687936,
+      "edge_density": 0.020637037037037037,
+      "flow_from_previous": 0.746313750743866,
+      "selection_score": 4.967577923652836
+    },
+    {
+      "frame_idx": 382,
+      "sharpness": 865.2248368263245,
+      "local_contrast": 17.432164966712158,
+      "edge_density": 0.022896296296296297,
+      "flow_from_previous": 1.0407253503799438,
+      "selection_score": 4.966494633273127
+    },
+    {
+      "frame_idx": 383,
+      "sharpness": 894.6873564720154,
+      "local_contrast": 17.50069196996976,
+      "edge_density": 0.02231111111111111,
+      "flow_from_previous": 0.45740827918052673,
+      "selection_score": 5.0406164111921195
+    },
+    {
+      "frame_idx": 384,
+      "sharpness": 958.7587094306946,
+      "local_contrast": 17.714689787842918,
+      "edge_density": 0.024348148148148147,
+      "flow_from_previous": 0.5510834455490112,
+      "selection_score": 5.085265186225632
+    },
+    {
+      "frame_idx": 385,
+      "sharpness": 971.191623210907,
+      "local_contrast": 17.694387949998383,
+      "edge_density": 0.026222222222222223,
+      "flow_from_previous": 0.6976630091667175,
+      "selection_score": 5.088059865360719
+    }
+  ],
+  "limitations": [
+    "The contrast branch preserves BGR color and does not emit a foreground mask as a final result.",
+    "CLAHE and gamma improve separability but cannot recover character strokes absent from the source frames.",
+    "Directional FFT reports anisotropic structure, not a unique physical blur kernel."
+  ],
+  "references": [
+    "https://arxiv.org/abs/2608.07120",
+    "https://openreview.net/forum?id=H98n6clgHv",
+    "https://www.mdpi.com/2076-3417/14/6/2630"
+  ]
+}

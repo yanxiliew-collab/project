@@ -1,0 +1,714 @@
+{
+  "video": ".\\data\\road.mp4",
+  "frame_range": [
+    350,
+    385
+  ],
+  "search_region": [
+    2000,
+    900,
+    3700,
+    1800
+  ],
+  "canonical_size": [
+    450,
+    300
+  ],
+  "detections": [
+    {
+      "frame_idx": 350,
+      "detected": true,
+      "source_bbox": [
+        2311,
+        1257,
+        2613,
+        1457
+      ],
+      "score": 1889.7562465667725,
+      "edge_density": 0.03735555555555556
+    },
+    {
+      "frame_idx": 351,
+      "detected": true,
+      "source_bbox": [
+        2316,
+        1252,
+        2623,
+        1457
+      ],
+      "score": 1903.5665774345398,
+      "edge_density": 0.039325925925925924
+    },
+    {
+      "frame_idx": 352,
+      "detected": true,
+      "source_bbox": [
+        2322,
+        1250,
+        2631,
+        1456
+      ],
+      "score": 1934.6777663230896,
+      "edge_density": 0.03651851851851852
+    },
+    {
+      "frame_idx": 353,
+      "detected": true,
+      "source_bbox": [
+        2328,
+        1248,
+        2640,
+        1454
+      ],
+      "score": 1964.611831188202,
+      "edge_density": 0.03997777777777778
+    },
+    {
+      "frame_idx": 354,
+      "detected": true,
+      "source_bbox": [
+        2336,
+        1241,
+        2648,
+        1457
+      ],
+      "score": 1945.7401175498962,
+      "edge_density": 0.04044444444444444
+    },
+    {
+      "frame_idx": 355,
+      "detected": true,
+      "source_bbox": [
+        2340,
+        1243,
+        2658,
+        1457
+      ],
+      "score": 1912.6970944404602,
+      "edge_density": 0.0381037037037037
+    },
+    {
+      "frame_idx": 356,
+      "detected": true,
+      "source_bbox": [
+        2348,
+        1239,
+        2668,
+        1453
+      ],
+      "score": 1907.5662536621094,
+      "edge_density": 0.03991851851851852
+    },
+    {
+      "frame_idx": 357,
+      "detected": true,
+      "source_bbox": [
+        2354,
+        1239,
+        2677,
+        1453
+      ],
+      "score": 1871.7056031227112,
+      "edge_density": 0.0396962962962963
+    },
+    {
+      "frame_idx": 358,
+      "detected": true,
+      "source_bbox": [
+        2360,
+        1235,
+        2688,
+        1453
+      ],
+      "score": 1918.3712487220764,
+      "edge_density": 0.0405037037037037
+    },
+    {
+      "frame_idx": 359,
+      "detected": true,
+      "source_bbox": [
+        2368,
+        1231,
+        2697,
+        1450
+      ],
+      "score": 1918.483901500702,
+      "edge_density": 0.03882962962962963
+    },
+    {
+      "frame_idx": 360,
+      "detected": true,
+      "source_bbox": [
+        2375,
+        1229,
+        2708,
+        1449
+      ],
+      "score": 1974.8081412315369,
+      "edge_density": 0.037037037037037035
+    },
+    {
+      "frame_idx": 361,
+      "detected": true,
+      "source_bbox": [
+        2381,
+        1224,
+        2719,
+        1450
+      ],
+      "score": 2013.0206112861633,
+      "edge_density": 0.04059259259259259
+    },
+    {
+      "frame_idx": 362,
+      "detected": true,
+      "source_bbox": [
+        2389,
+        1222,
+        2729,
+        1447
+      ],
+      "score": 2030.239625453949,
+      "edge_density": 0.041355555555555555
+    },
+    {
+      "frame_idx": 363,
+      "detected": true,
+      "source_bbox": [
+        2396,
+        1213,
+        2739,
+        1447
+      ],
+      "score": 2074.1061658859253,
+      "edge_density": 0.04128148148148148
+    },
+    {
+      "frame_idx": 364,
+      "detected": true,
+      "source_bbox": [
+        2405,
+        1216,
+        2750,
+        1446
+      ],
+      "score": 2060.1707315444946,
+      "edge_density": 0.047066666666666666
+    },
+    {
+      "frame_idx": 365,
+      "detected": true,
+      "source_bbox": [
+        2412,
+        1209,
+        2763,
+        1443
+      ],
+      "score": 2101.551091194153,
+      "edge_density": 0.046933333333333334
+    },
+    {
+      "frame_idx": 366,
+      "detected": true,
+      "source_bbox": [
+        2420,
+        1203,
+        2774,
+        1443
+      ],
+      "score": 2137.936047077179,
+      "edge_density": 0.04596296296296296
+    },
+    {
+      "frame_idx": 367,
+      "detected": true,
+      "source_bbox": [
+        2427,
+        1205,
+        2787,
+        1441
+      ],
+      "score": 2146.5854630470276,
+      "edge_density": 0.03994814814814815
+    },
+    {
+      "frame_idx": 368,
+      "detected": true,
+      "source_bbox": [
+        2435,
+        1201,
+        2797,
+        1441
+      ],
+      "score": 2155.0215377807617,
+      "edge_density": 0.04387407407407407
+    },
+    {
+      "frame_idx": 369,
+      "detected": true,
+      "source_bbox": [
+        2445,
+        1196,
+        2810,
+        1440
+      ],
+      "score": 2170.3050055503845,
+      "edge_density": 0.04374074074074074
+    },
+    {
+      "frame_idx": 370,
+      "detected": true,
+      "source_bbox": [
+        2452,
+        1192,
+        2824,
+        1438
+      ],
+      "score": 2175.6113243103027,
+      "edge_density": 0.04228888888888889
+    },
+    {
+      "frame_idx": 371,
+      "detected": true,
+      "source_bbox": [
+        2462,
+        1188,
+        2836,
+        1436
+      ],
+      "score": 2193.0314245224,
+      "edge_density": 0.04545925925925926
+    },
+    {
+      "frame_idx": 372,
+      "detected": true,
+      "source_bbox": [
+        2471,
+        1184,
+        2851,
+        1434
+      ],
+      "score": 2276.11385679245,
+      "edge_density": 0.04775555555555556
+    },
+    {
+      "frame_idx": 373,
+      "detected": true,
+      "source_bbox": [
+        2481,
+        1179,
+        2863,
+        1435
+      ],
+      "score": 2273.355191707611,
+      "edge_density": 0.04962962962962963
+    },
+    {
+      "frame_idx": 374,
+      "detected": true,
+      "source_bbox": [
+        2491,
+        1173,
+        2877,
+        1431
+      ],
+      "score": 2290.2049345970154,
+      "edge_density": 0.0466962962962963
+    },
+    {
+      "frame_idx": 375,
+      "detected": true,
+      "source_bbox": [
+        2500,
+        1162,
+        2892,
+        1430
+      ],
+      "score": 2365.3586502075195,
+      "edge_density": 0.049325925925925926
+    },
+    {
+      "frame_idx": 376,
+      "detected": true,
+      "source_bbox": [
+        2510,
+        1160,
+        2906,
+        1430
+      ],
+      "score": 2442.662001132965,
+      "edge_density": 0.05397037037037037
+    },
+    {
+      "frame_idx": 377,
+      "detected": true,
+      "source_bbox": [
+        2519,
+        1156,
+        2922,
+        1428
+      ],
+      "score": 2434.0482215881348,
+      "edge_density": 0.04737037037037037
+    },
+    {
+      "frame_idx": 378,
+      "detected": true,
+      "source_bbox": [
+        2531,
+        1156,
+        2937,
+        1426
+      ],
+      "score": 2399.5150928497314,
+      "edge_density": 0.05085185185185185
+    },
+    {
+      "frame_idx": 379,
+      "detected": true,
+      "source_bbox": [
+        2541,
+        1145,
+        2953,
+        1424
+      ],
+      "score": 2445.3704767227173,
+      "edge_density": 0.047851851851851854
+    },
+    {
+      "frame_idx": 380,
+      "detected": true,
+      "source_bbox": [
+        2552,
+        1149,
+        2968,
+        1424
+      ],
+      "score": 2425.701624393463,
+      "edge_density": 0.045955555555555555
+    },
+    {
+      "frame_idx": 381,
+      "detected": true,
+      "source_bbox": [
+        2563,
+        1143,
+        2985,
+        1421
+      ],
+      "score": 2434.9202542304993,
+      "edge_density": 0.04417777777777778
+    },
+    {
+      "frame_idx": 382,
+      "detected": true,
+      "source_bbox": [
+        2575,
+        1137,
+        3001,
+        1418
+      ],
+      "score": 2452.758815765381,
+      "edge_density": 0.04751111111111111
+    },
+    {
+      "frame_idx": 383,
+      "detected": true,
+      "source_bbox": [
+        2586,
+        1134,
+        3018,
+        1420
+      ],
+      "score": 2520.4857544898987,
+      "edge_density": 0.04680740740740741
+    },
+    {
+      "frame_idx": 384,
+      "detected": true,
+      "source_bbox": [
+        2600,
+        1128,
+        3036,
+        1418
+      ],
+      "score": 2694.100790977478,
+      "edge_density": 0.0514
+    },
+    {
+      "frame_idx": 385,
+      "detected": true,
+      "source_bbox": [
+        2612,
+        1122,
+        3055,
+        1414
+      ],
+      "score": 2652.3246006965637,
+      "edge_density": 0.04968888888888889
+    }
+  ],
+  "selected_frames": [
+    384,
+    385,
+    383,
+    382,
+    379
+  ],
+  "selection": "top five sign-only sharpness scores after dynamic bbox crop",
+  "outputs": {
+    "dynamic_sign_median": {
+      "path": "dynamic_sign_median.png",
+      "metrics": {
+        "sharpness_gray": 5586.467975616455,
+        "laplacian_gray": 76.62710571289062,
+        "laplacian_red": 119.59852600097656,
+        "edge_density_gray": 0.07063703703703704,
+        "edge_density_red": 0.07482222222222222
+      },
+      "diagnostics": {
+        "mode": "fusion",
+        "reference_frame_idx": 384,
+        "alignment_bbox": [
+          0,
+          0,
+          450,
+          300
+        ],
+        "frame_scores": [
+          {
+            "frame_idx": 384,
+            "score": 2694.100790977478
+          },
+          {
+            "frame_idx": 385,
+            "score": 2652.3246006965637
+          },
+          {
+            "frame_idx": 383,
+            "score": 2520.4857544898987
+          },
+          {
+            "frame_idx": 382,
+            "score": 2452.758815765381
+          },
+          {
+            "frame_idx": 379,
+            "score": 2445.3704767227173
+          }
+        ],
+        "accepted": [
+          {
+            "frame_idx": 384,
+            "correlation": 1.0
+          },
+          {
+            "frame_idx": 385,
+            "correlation": 0.9932911348305753
+          },
+          {
+            "frame_idx": 383,
+            "correlation": 0.9914403573849836
+          },
+          {
+            "frame_idx": 382,
+            "correlation": 0.981449187833379
+          },
+          {
+            "frame_idx": 379,
+            "correlation": 0.9611197521875927
+          }
+        ],
+        "weights": [
+          {
+            "frame_idx": 384,
+            "weight": 2694.100790977478
+          },
+          {
+            "frame_idx": 385,
+            "weight": 2551.53552912067
+          },
+          {
+            "frame_idx": 383,
+            "weight": 2380.8648731390867
+          },
+          {
+            "frame_idx": 382,
+            "weight": 2270.6037311738846
+          },
+          {
+            "frame_idx": 379,
+            "weight": 2160.003300876487
+          }
+        ],
+        "quality": [
+          {
+            "frame_idx": 384,
+            "motion_quality": 1.0,
+            "occlusion_ratio": 0.0
+          },
+          {
+            "frame_idx": 385,
+            "motion_quality": 0.9684972396226037,
+            "occlusion_ratio": 0.0003925925925925926
+          },
+          {
+            "frame_idx": 383,
+            "motion_quality": 0.9527608586156344,
+            "occlusion_ratio": 0.0004074074074074074
+          },
+          {
+            "frame_idx": 382,
+            "motion_quality": 0.9432323381513207,
+            "occlusion_ratio": 0.0015185185185185184
+          },
+          {
+            "frame_idx": 379,
+            "motion_quality": 0.919035415773848,
+            "occlusion_ratio": 0.004711111111111111
+          }
+        ],
+        "rejected": [],
+        "processed_frames": 5,
+        "elapsed_ms": 408.2703000167385
+      }
+    },
+    "dynamic_sign_weighted": {
+      "path": "dynamic_sign_weighted.png",
+      "metrics": {
+        "sharpness_gray": 5570.13916683197,
+        "laplacian_gray": 65.33747100830078,
+        "laplacian_red": 103.22686004638672,
+        "edge_density_gray": 0.06532592592592593,
+        "edge_density_red": 0.0687037037037037
+      },
+      "diagnostics": {
+        "mode": "fusion",
+        "reference_frame_idx": 384,
+        "alignment_bbox": [
+          0,
+          0,
+          450,
+          300
+        ],
+        "frame_scores": [
+          {
+            "frame_idx": 384,
+            "score": 2694.100790977478
+          },
+          {
+            "frame_idx": 385,
+            "score": 2652.3246006965637
+          },
+          {
+            "frame_idx": 383,
+            "score": 2520.4857544898987
+          },
+          {
+            "frame_idx": 382,
+            "score": 2452.758815765381
+          },
+          {
+            "frame_idx": 379,
+            "score": 2445.3704767227173
+          }
+        ],
+        "accepted": [
+          {
+            "frame_idx": 384,
+            "correlation": 1.0
+          },
+          {
+            "frame_idx": 385,
+            "correlation": 0.9932911348305753
+          },
+          {
+            "frame_idx": 383,
+            "correlation": 0.9914403573849836
+          },
+          {
+            "frame_idx": 382,
+            "correlation": 0.981449187833379
+          },
+          {
+            "frame_idx": 379,
+            "correlation": 0.9611197521875927
+          }
+        ],
+        "weights": [
+          {
+            "frame_idx": 384,
+            "weight": 2694.100790977478
+          },
+          {
+            "frame_idx": 385,
+            "weight": 2551.53552912067
+          },
+          {
+            "frame_idx": 383,
+            "weight": 2380.8648731390867
+          },
+          {
+            "frame_idx": 382,
+            "weight": 2270.6037311738846
+          },
+          {
+            "frame_idx": 379,
+            "weight": 2160.003300876487
+          }
+        ],
+        "quality": [
+          {
+            "frame_idx": 384,
+            "motion_quality": 1.0,
+            "occlusion_ratio": 0.0
+          },
+          {
+            "frame_idx": 385,
+            "motion_quality": 0.9684972396226037,
+            "occlusion_ratio": 0.0003925925925925926
+          },
+          {
+            "frame_idx": 383,
+            "motion_quality": 0.9527608586156344,
+            "occlusion_ratio": 0.0004074074074074074
+          },
+          {
+            "frame_idx": 382,
+            "motion_quality": 0.9432323381513207,
+            "occlusion_ratio": 0.0015185185185185184
+          },
+          {
+            "frame_idx": 379,
+            "motion_quality": 0.919035415773848,
+            "occlusion_ratio": 0.004711111111111111
+          }
+        ],
+        "rejected": [],
+        "processed_frames": 5,
+        "elapsed_ms": 238.58090001158416
+      }
+    },
+    "dynamic_sign_median_r_channel": {
+      "path": "dynamic_sign_median_r_channel.png",
+      "metrics": {
+        "sharpness_gray": 8405.594537734985,
+        "laplacian_gray": 119.59852600097656,
+        "laplacian_red": 119.59852600097656,
+        "edge_density_gray": 0.07482222222222222,
+        "edge_density_red": 0.07482222222222222
+      },
+      "interpretation": "controlled comparison only; not a universal grayscale replacement"
+    }
+  },
+  "final_verified": "final_verified.png",
+  "comparison": {
+    "existing_motion_aware_median": "outputs/road_signs/motion_aware/motion_aware_median.png",
+    "note": "Images use different canonical crops; visual comparison is supplemental, not a direct metric ranking."
+  },
+  "contact_sheet": "dynamic_sign_contact_sheet.png",
+  "limitations": [
+    "The detector is a conservative HSV sign-surface candidate, not a trained road-sign detector.",
+    "Axis-aligned dynamic crops do not recover details absent from the source frames."
+  ]
+}

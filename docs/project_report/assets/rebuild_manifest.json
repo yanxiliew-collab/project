@@ -1,0 +1,1021 @@
+{
+  "video": "data\\road.mp4",
+  "metadata": {
+    "path": "data\\road.mp4",
+    "frame_count": 390,
+    "fps": 30.0,
+    "width": 3840,
+    "height": 2160,
+    "codec": 875967080,
+    "duration_seconds": 13.0
+  },
+  "dependencies": {
+    "cv2": true,
+    "numpy": true,
+    "ultralytics": true,
+    "torch": true,
+    "onnxruntime": false,
+    "realesrgan": false,
+    "weights_exists": true
+  },
+  "yolo": {
+    "attempted": true,
+    "used_for_sign_track": false,
+    "reason": "COCO checkpoint has no generic road-sign class; sign track remains deterministic color fallback",
+    "class_counts": {
+      "car": 22,
+      "truck": 4
+    }
+  },
+  "detector": {
+    "primary": "HSV blue-green sign surface candidate",
+    "fallback_reason": "COCO checkpoint has no generic road-sign class; sign track remains deterministic color fallback",
+    "frames_detected": 36
+  },
+  "selection": {
+    "all_frame_count": 36,
+    "selected_frames": [
+      384,
+      385,
+      383,
+      378,
+      381
+    ],
+    "window_center": 384,
+    "criteria": "sign ROI sharpness + text separation + edge density - local optical flow",
+    "rejected_frames": [
+      350,
+      351,
+      352,
+      353,
+      354,
+      355,
+      356,
+      357,
+      358,
+      359,
+      360,
+      361,
+      362,
+      363,
+      364,
+      365,
+      366,
+      367,
+      368,
+      369,
+      370,
+      371,
+      372,
+      373,
+      374,
+      375,
+      376,
+      377,
+      379,
+      380,
+      382
+    ]
+  },
+  "records": [
+    {
+      "frame_idx": 350,
+      "source_bbox": [
+        2311,
+        1257,
+        2613,
+        1457
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 636.8302768468857,
+      "flow_from_previous": 0.0,
+      "foreground_background_contrast": 169.81865579389495,
+      "foreground_ratio": 0.13555555555555557,
+      "glare_ratio": 0.0,
+      "selection_score": 4.987951932001274
+    },
+    {
+      "frame_idx": 351,
+      "source_bbox": [
+        2316,
+        1252,
+        2623,
+        1457
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 640.3345073461533,
+      "flow_from_previous": 1.1005637645721436,
+      "foreground_background_contrast": 172.12204281179942,
+      "foreground_ratio": 0.13147407407407408,
+      "glare_ratio": 0.0,
+      "selection_score": 4.875486619842621
+    },
+    {
+      "frame_idx": 352,
+      "source_bbox": [
+        2322,
+        1250,
+        2631,
+        1456
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 644.6845703125,
+      "flow_from_previous": 1.8932926654815674,
+      "foreground_background_contrast": 173.2713073357215,
+      "foreground_ratio": 0.13114074074074075,
+      "glare_ratio": 0.0,
+      "selection_score": 4.801254509136734
+    },
+    {
+      "frame_idx": 353,
+      "source_bbox": [
+        2328,
+        1248,
+        2640,
+        1454
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 694.1953496932983,
+      "flow_from_previous": 0.6941484808921814,
+      "foreground_background_contrast": 172.6685951746954,
+      "foreground_ratio": 0.136,
+      "glare_ratio": 0.0,
+      "selection_score": 4.9542085922534955
+    },
+    {
+      "frame_idx": 354,
+      "source_bbox": [
+        2336,
+        1241,
+        2648,
+        1457
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 676.8886938095093,
+      "flow_from_previous": 0.5461264848709106,
+      "foreground_background_contrast": 172.95089052962555,
+      "foreground_ratio": 0.1303925925925926,
+      "glare_ratio": 0.0,
+      "selection_score": 4.963211780422576
+    },
+    {
+      "frame_idx": 355,
+      "source_bbox": [
+        2340,
+        1243,
+        2658,
+        1457
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 688.4630424976349,
+      "flow_from_previous": 0.9211147427558899,
+      "foreground_background_contrast": 176.11273104971502,
+      "foreground_ratio": 0.1330074074074074,
+      "glare_ratio": 0.0,
+      "selection_score": 4.927273653071552
+    },
+    {
+      "frame_idx": 356,
+      "source_bbox": [
+        2348,
+        1239,
+        2668,
+        1453
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 699.8977720737457,
+      "flow_from_previous": 1.1435350179672241,
+      "foreground_background_contrast": 173.30807279102865,
+      "foreground_ratio": 0.13226666666666667,
+      "glare_ratio": 0.0,
+      "selection_score": 4.911708015149509
+    },
+    {
+      "frame_idx": 357,
+      "source_bbox": [
+        2354,
+        1239,
+        2677,
+        1453
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 687.5774528980255,
+      "flow_from_previous": 1.7286940813064575,
+      "foreground_background_contrast": 172.09890194521398,
+      "foreground_ratio": 0.13837777777777777,
+      "glare_ratio": 0.0,
+      "selection_score": 4.850097456129994
+    },
+    {
+      "frame_idx": 358,
+      "source_bbox": [
+        2360,
+        1235,
+        2688,
+        1453
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 668.8902833461761,
+      "flow_from_previous": 0.986616313457489,
+      "foreground_background_contrast": 171.3925278907681,
+      "foreground_ratio": 0.135,
+      "glare_ratio": 0.0,
+      "selection_score": 4.910341493794686
+    },
+    {
+      "frame_idx": 359,
+      "source_bbox": [
+        2368,
+        1231,
+        2697,
+        1450
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 674.9453976154327,
+      "flow_from_previous": 0.5483032464981079,
+      "foreground_background_contrast": 172.00405354539708,
+      "foreground_ratio": 0.1332962962962963,
+      "glare_ratio": 0.0,
+      "selection_score": 4.95347474112008
+    },
+    {
+      "frame_idx": 360,
+      "source_bbox": [
+        2375,
+        1229,
+        2708,
+        1449
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 691.3803868293762,
+      "flow_from_previous": 1.1931164264678955,
+      "foreground_background_contrast": 173.7748432823733,
+      "foreground_ratio": 0.1313851851851852,
+      "glare_ratio": 0.0,
+      "selection_score": 4.898239706061212
+    },
+    {
+      "frame_idx": 361,
+      "source_bbox": [
+        2381,
+        1224,
+        2719,
+        1450
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 716.4644956588745,
+      "flow_from_previous": 0.6018202900886536,
+      "foreground_background_contrast": 170.25696093114118,
+      "foreground_ratio": 0.1400962962962963,
+      "glare_ratio": 0.0,
+      "selection_score": 4.978211389530973
+    },
+    {
+      "frame_idx": 362,
+      "source_bbox": [
+        2389,
+        1222,
+        2729,
+        1447
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 694.4122922420502,
+      "flow_from_previous": 0.9269934892654419,
+      "foreground_background_contrast": 170.68863101447943,
+      "foreground_ratio": 0.1320814814814815,
+      "glare_ratio": 0.0,
+      "selection_score": 4.925751670236057
+    },
+    {
+      "frame_idx": 363,
+      "source_bbox": [
+        2396,
+        1213,
+        2739,
+        1447
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 761.7578277587891,
+      "flow_from_previous": 1.0012555122375488,
+      "foreground_background_contrast": 175.3860888803771,
+      "foreground_ratio": 0.1360962962962963,
+      "glare_ratio": 0.0,
+      "selection_score": 4.975395070881943
+    },
+    {
+      "frame_idx": 364,
+      "source_bbox": [
+        2405,
+        1216,
+        2750,
+        1446
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 754.5223846435547,
+      "flow_from_previous": 0.9640868902206421,
+      "foreground_background_contrast": 174.26893102710167,
+      "foreground_ratio": 0.1355185185185185,
+      "glare_ratio": 0.0,
+      "selection_score": 4.970105477438727
+    },
+    {
+      "frame_idx": 365,
+      "source_bbox": [
+        2412,
+        1209,
+        2763,
+        1443
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 805.6998155117035,
+      "flow_from_previous": 0.645103394985199,
+      "foreground_background_contrast": 173.57627427953702,
+      "foreground_ratio": 0.13791851851851852,
+      "glare_ratio": 0.0,
+      "selection_score": 5.0309578813035385
+    },
+    {
+      "frame_idx": 366,
+      "source_bbox": [
+        2420,
+        1203,
+        2774,
+        1443
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 821.7834236621857,
+      "flow_from_previous": 0.645982027053833,
+      "foreground_background_contrast": 174.40559272093734,
+      "foreground_ratio": 0.13797777777777778,
+      "glare_ratio": 0.0,
+      "selection_score": 5.039952737720778
+    },
+    {
+      "frame_idx": 367,
+      "source_bbox": [
+        2427,
+        1205,
+        2787,
+        1441
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 785.2132003307343,
+      "flow_from_previous": 1.1307672262191772,
+      "foreground_background_contrast": 176.3375533868014,
+      "foreground_ratio": 0.13314074074074075,
+      "glare_ratio": 0.0,
+      "selection_score": 4.96817091552993
+    },
+    {
+      "frame_idx": 368,
+      "source_bbox": [
+        2435,
+        1201,
+        2797,
+        1441
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 772.7568900585175,
+      "flow_from_previous": 0.8575543165206909,
+      "foreground_background_contrast": 174.63352431875416,
+      "foreground_ratio": 0.13305185185185187,
+      "glare_ratio": 0.0,
+      "selection_score": 4.987222751123028
+    },
+    {
+      "frame_idx": 369,
+      "source_bbox": [
+        2445,
+        1196,
+        2810,
+        1440
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 772.9234807491302,
+      "flow_from_previous": 1.0855787992477417,
+      "foreground_background_contrast": 175.81046295659237,
+      "foreground_ratio": 0.13317037037037038,
+      "glare_ratio": 0.0,
+      "selection_score": 4.964594385570422
+    },
+    {
+      "frame_idx": 370,
+      "source_bbox": [
+        2452,
+        1192,
+        2824,
+        1438
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 826.0495858192444,
+      "flow_from_previous": 1.0381097793579102,
+      "foreground_background_contrast": 176.39203604335262,
+      "foreground_ratio": 0.13743703703703702,
+      "glare_ratio": 0.0,
+      "selection_score": 5.007233099579665
+    },
+    {
+      "frame_idx": 371,
+      "source_bbox": [
+        2462,
+        1188,
+        2836,
+        1436
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 802.6531612873077,
+      "flow_from_previous": 1.680965542793274,
+      "foreground_background_contrast": 174.88234781013014,
+      "foreground_ratio": 0.13653333333333334,
+      "glare_ratio": 0.0,
+      "selection_score": 4.929628341274084
+    },
+    {
+      "frame_idx": 372,
+      "source_bbox": [
+        2471,
+        1184,
+        2851,
+        1434
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 838.7957310676575,
+      "flow_from_previous": 0.5553380250930786,
+      "foreground_background_contrast": 170.4482502683524,
+      "foreground_ratio": 0.14486666666666667,
+      "glare_ratio": 0.0,
+      "selection_score": 5.066951805766695
+    },
+    {
+      "frame_idx": 373,
+      "source_bbox": [
+        2481,
+        1179,
+        2863,
+        1435
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 853.4754693508148,
+      "flow_from_previous": 0.9816700220108032,
+      "foreground_background_contrast": 175.90363197342538,
+      "foreground_ratio": 0.1392,
+      "glare_ratio": 0.0,
+      "selection_score": 5.030370750252422
+    },
+    {
+      "frame_idx": 374,
+      "source_bbox": [
+        2491,
+        1173,
+        2877,
+        1431
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 837.2989954948425,
+      "flow_from_previous": 0.4679115414619446,
+      "foreground_background_contrast": 175.58351290950958,
+      "foreground_ratio": 0.1376,
+      "glare_ratio": 0.0,
+      "selection_score": 5.073380675387155
+    },
+    {
+      "frame_idx": 375,
+      "source_bbox": [
+        2500,
+        1162,
+        2892,
+        1430
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 832.248904466629,
+      "flow_from_previous": 0.4298343062400818,
+      "foreground_background_contrast": 175.62756351676438,
+      "foreground_ratio": 0.13456296296296297,
+      "glare_ratio": 0.0,
+      "selection_score": 5.067886718340497
+    },
+    {
+      "frame_idx": 376,
+      "source_bbox": [
+        2510,
+        1160,
+        2906,
+        1430
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 836.3166120052338,
+      "flow_from_previous": 0.5187090039253235,
+      "foreground_background_contrast": 175.76238699796448,
+      "foreground_ratio": 0.13687407407407406,
+      "glare_ratio": 0.0,
+      "selection_score": 5.065428232844859
+    },
+    {
+      "frame_idx": 377,
+      "source_bbox": [
+        2519,
+        1156,
+        2922,
+        1428
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 843.7880728244781,
+      "flow_from_previous": 0.7243157029151917,
+      "foreground_background_contrast": 174.82768711746112,
+      "foreground_ratio": 0.1376888888888889,
+      "glare_ratio": 0.0,
+      "selection_score": 5.045329702356351
+    },
+    {
+      "frame_idx": 378,
+      "source_bbox": [
+        2531,
+        1156,
+        2937,
+        1426
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 848.5722897052765,
+      "flow_from_previous": 0.5531888604164124,
+      "foreground_background_contrast": 173.4773586333931,
+      "foreground_ratio": 0.13845185185185185,
+      "glare_ratio": 0.0,
+      "selection_score": 5.063337370387172
+    },
+    {
+      "frame_idx": 379,
+      "source_bbox": [
+        2541,
+        1145,
+        2953,
+        1424
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 852.9259910583496,
+      "flow_from_previous": 1.064069390296936,
+      "foreground_background_contrast": 175.78794645823407,
+      "foreground_ratio": 0.1379037037037037,
+      "glare_ratio": 0.0,
+      "selection_score": 5.014610326797743
+    },
+    {
+      "frame_idx": 380,
+      "source_bbox": [
+        2552,
+        1149,
+        2968,
+        1424
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 843.6390228271484,
+      "flow_from_previous": 1.0257532596588135,
+      "foreground_background_contrast": 174.39343311821415,
+      "foreground_ratio": 0.1360148148148148,
+      "glare_ratio": 0.0,
+      "selection_score": 5.0130485686429935
+    },
+    {
+      "frame_idx": 381,
+      "source_bbox": [
+        2563,
+        1143,
+        2985,
+        1421
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 845.7709522247314,
+      "flow_from_previous": 0.746313750743866,
+      "foreground_background_contrast": 174.17913778819343,
+      "foreground_ratio": 0.13723703703703705,
+      "glare_ratio": 0.0,
+      "selection_score": 5.047904342677806
+    },
+    {
+      "frame_idx": 382,
+      "source_bbox": [
+        2575,
+        1137,
+        3001,
+        1418
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 865.2248368263245,
+      "flow_from_previous": 1.0407253503799438,
+      "foreground_background_contrast": 174.3323578095377,
+      "foreground_ratio": 0.13685925925925926,
+      "glare_ratio": 0.0,
+      "selection_score": 5.0205978654844055
+    },
+    {
+      "frame_idx": 383,
+      "source_bbox": [
+        2586,
+        1134,
+        3018,
+        1420
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 894.6873564720154,
+      "flow_from_previous": 0.45740827918052673,
+      "foreground_background_contrast": 172.93002348161826,
+      "foreground_ratio": 0.13687407407407406,
+      "glare_ratio": 0.0,
+      "selection_score": 5.108094012148421
+    },
+    {
+      "frame_idx": 384,
+      "source_bbox": [
+        2600,
+        1128,
+        3036,
+        1418
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 958.7587094306946,
+      "flow_from_previous": 0.5510834455490112,
+      "foreground_background_contrast": 173.1198930696326,
+      "foreground_ratio": 0.13905925925925927,
+      "glare_ratio": 0.0,
+      "selection_score": 5.139259379872017
+    },
+    {
+      "frame_idx": 385,
+      "source_bbox": [
+        2612,
+        1122,
+        3055,
+        1414
+      ],
+      "rectification": "four_corner_homography",
+      "sharpness": 971.191623210907,
+      "flow_from_previous": 0.6976630091667175,
+      "foreground_background_contrast": 174.0623527385965,
+      "foreground_ratio": 0.13877777777777778,
+      "glare_ratio": 0.0,
+      "selection_score": 5.134451075453585
+    }
+  ],
+  "outputs": {
+    "final_original_rectified": {
+      "path": "final_original_rectified.png",
+      "metrics": {
+        "sharpness": 2780.964141845703,
+        "laplacian": 47.43868637084961,
+        "edge_density": 0.05207407407407407,
+        "foreground_ratio": 0.14077037037037038,
+        "foreground_background_contrast": 31.490825792851908,
+        "foreground_mean": 139.34676910124185,
+        "background_mean": 107.85594330838994
+      },
+      "diagnostics": {
+        "mode": "fusion",
+        "reference_frame_idx": 385,
+        "alignment_bbox": [
+          0,
+          0,
+          450,
+          300
+        ],
+        "frame_scores": [
+          {
+            "frame_idx": 385,
+            "score": 971.191623210907
+          },
+          {
+            "frame_idx": 384,
+            "score": 958.7587094306946
+          },
+          {
+            "frame_idx": 383,
+            "score": 894.6873564720154
+          },
+          {
+            "frame_idx": 378,
+            "score": 848.5722897052765
+          },
+          {
+            "frame_idx": 381,
+            "score": 845.7709522247314
+          }
+        ],
+        "accepted": [
+          {
+            "frame_idx": 385,
+            "correlation": 1.0
+          },
+          {
+            "frame_idx": 384,
+            "correlation": 0.9940803210488958
+          },
+          {
+            "frame_idx": 383,
+            "correlation": 0.9901993428234055
+          },
+          {
+            "frame_idx": 378,
+            "correlation": 0.9896437086821105
+          },
+          {
+            "frame_idx": 381,
+            "correlation": 0.9915721100020908
+          }
+        ],
+        "weights": [
+          {
+            "frame_idx": 385,
+            "weight": 971.191623210907
+          },
+          {
+            "frame_idx": 384,
+            "weight": 939.5271947430749
+          },
+          {
+            "frame_idx": 383,
+            "weight": 857.2237976433095
+          },
+          {
+            "frame_idx": 378,
+            "weight": 807.7961382274276
+          },
+          {
+            "frame_idx": 381,
+            "weight": 811.1071544719904
+          }
+        ],
+        "quality": [
+          {
+            "frame_idx": 385,
+            "motion_quality": 1.0,
+            "occlusion_ratio": 0.0
+          },
+          {
+            "frame_idx": 384,
+            "motion_quality": 0.9857767176838621,
+            "occlusion_ratio": 0.0
+          },
+          {
+            "frame_idx": 383,
+            "motion_quality": 0.9676098602739965,
+            "occlusion_ratio": 0.0
+          },
+          {
+            "frame_idx": 378,
+            "motion_quality": 0.9619091564477797,
+            "occlusion_ratio": 0.0
+          },
+          {
+            "frame_idx": 381,
+            "motion_quality": 0.9671663188126819,
+            "occlusion_ratio": 0.0
+          }
+        ],
+        "rejected": [],
+        "processed_frames": 5,
+        "elapsed_ms": 532.8018000000156
+      }
+    },
+    "final_text_focused": {
+      "path": "final_text_focused.png",
+      "metrics": {
+        "sharpness": 9658.933689117432,
+        "laplacian": 444.2244873046875,
+        "edge_density": 0.0682962962962963,
+        "foreground_ratio": 0.13720740740740742,
+        "foreground_background_contrast": 98.52029169643917,
+        "foreground_mean": 196.23581493278627,
+        "background_mean": 97.7155232363471
+      },
+      "diagnostics": {
+        "mode": "fusion",
+        "reference_frame_idx": 385,
+        "alignment_bbox": [
+          0,
+          0,
+          450,
+          300
+        ],
+        "frame_scores": [
+          {
+            "frame_idx": 385,
+            "score": 20747.20082092285
+          },
+          {
+            "frame_idx": 384,
+            "score": 20641.803436279297
+          },
+          {
+            "frame_idx": 383,
+            "score": 19730.450775146484
+          },
+          {
+            "frame_idx": 378,
+            "score": 19028.863037109375
+          },
+          {
+            "frame_idx": 381,
+            "score": 18856.053749084473
+          }
+        ],
+        "accepted": [
+          {
+            "frame_idx": 385,
+            "correlation": 1.0
+          },
+          {
+            "frame_idx": 384,
+            "correlation": 0.9771674766449775
+          },
+          {
+            "frame_idx": 383,
+            "correlation": 0.942322403515308
+          },
+          {
+            "frame_idx": 378,
+            "correlation": 0.9351808688649125
+          },
+          {
+            "frame_idx": 381,
+            "correlation": 0.9470122087176166
+          }
+        ],
+        "weights": [
+          {
+            "frame_idx": 385,
+            "weight": 20747.20082092285
+          },
+          {
+            "frame_idx": 384,
+            "weight": 18256.084771870457
+          },
+          {
+            "frame_idx": 383,
+            "weight": 15703.493609072386
+          },
+          {
+            "frame_idx": 378,
+            "weight": 14798.901506740192
+          },
+          {
+            "frame_idx": 381,
+            "weight": 15085.338343614172
+          }
+        ],
+        "quality": [
+          {
+            "frame_idx": 385,
+            "motion_quality": 1.0,
+            "occlusion_ratio": 0.0
+          },
+          {
+            "frame_idx": 384,
+            "motion_quality": 0.9050884062153702,
+            "occlusion_ratio": 0.029755555555555556
+          },
+          {
+            "frame_idx": 383,
+            "motion_quality": 0.8446168826110301,
+            "occlusion_ratio": 0.05221481481481482
+          },
+          {
+            "frame_idx": 378,
+            "motion_quality": 0.8316125327674712,
+            "occlusion_ratio": 0.05748888888888889
+          },
+          {
+            "frame_idx": 381,
+            "motion_quality": 0.8447898162383555,
+            "occlusion_ratio": 0.0522
+          }
+        ],
+        "rejected": [],
+        "processed_frames": 5,
+        "elapsed_ms": 316.5123999933712
+      }
+    },
+    "final_foreground_mask": {
+      "path": "final_foreground_mask.png",
+      "metrics": {
+        "sharpness": 41705.21844482422,
+        "laplacian": 4645.73974609375,
+        "edge_density": 0.04397037037037037,
+        "foreground_ratio": 1.0,
+        "foreground_background_contrast": 37.87541481481482,
+        "foreground_mean": 37.87541481481482,
+        "background_mean": 0.0
+      },
+      "diagnostics": {
+        "mode": "fusion",
+        "reference_frame_idx": 384,
+        "alignment_bbox": [
+          0,
+          0,
+          450,
+          300
+        ],
+        "frame_scores": [
+          {
+            "frame_idx": 384,
+            "score": 55733.279235839844
+          },
+          {
+            "frame_idx": 385,
+            "score": 55093.20202636719
+          },
+          {
+            "frame_idx": 383,
+            "score": 54037.096588134766
+          },
+          {
+            "frame_idx": 378,
+            "score": 52317.9313659668
+          },
+          {
+            "frame_idx": 381,
+            "score": 51725.01284790039
+          }
+        ],
+        "accepted": [
+          {
+            "frame_idx": 384,
+            "correlation": 1.0
+          },
+          {
+            "frame_idx": 385,
+            "correlation": 0.9424263119601042
+          },
+          {
+            "frame_idx": 383,
+            "correlation": 0.855465754793315
+          },
+          {
+            "frame_idx": 378,
+            "correlation": 0.8671200488797045
+          },
+          {
+            "frame_idx": 381,
+            "correlation": 0.8659227195045659
+          }
+        ],
+        "weights": [
+          {
+            "frame_idx": 384,
+            "weight": 55733.279235839844
+          },
+          {
+            "frame_idx": 385,
+            "weight": 44912.40575196175
+          },
+          {
+            "frame_idx": 383,
+            "weight": 36479.8791825018
+          },
+          {
+            "frame_idx": 378,
+            "weight": 35992.04416588244
+          },
+          {
+            "frame_idx": 381,
+            "weight": 35560.025199588956
+          }
+        ],
+        "quality": [
+          {
+            "frame_idx": 384,
+            "motion_quality": 1.0,
+            "occlusion_ratio": 0.0
+          },
+          {
+            "frame_idx": 385,
+            "motion_quality": 0.8650095487653544,
+            "occlusion_ratio": 0.046592592592592595
+          },
+          {
+            "frame_idx": 383,
+            "motion_quality": 0.7891485375564258,
+            "occlusion_ratio": 0.06903703703703704
+          },
+          {
+            "frame_idx": 378,
+            "motion_quality": 0.7933717303860346,
+            "occlusion_ratio": 0.06831851851851851
+          },
+          {
+            "frame_idx": 381,
+            "motion_quality": 0.7939301928890513,
+            "occlusion_ratio": 0.0708
+          }
+        ],
+        "rejected": [],
+        "processed_frames": 5,
+        "elapsed_ms": 419.7133999550715
+      }
+    }
+  },
+  "contact_sheet": "rebuild_contact_sheet.png",
+  "limitations": [
+    "The supplied COCO checkpoint is probed but not trusted for generic road-sign detection.",
+    "HSV fallback is deterministic but not a trained sign detector and may require domain-specific training data.",
+    "Foreground/text separation is an evaluation branch; it improves separability but does not restore missing strokes.",
+    "No prior outputs are read as input; only data/road.mp4 is used."
+  ]
+}
