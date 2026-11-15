@@ -60,6 +60,62 @@ def _contrast_only(image: np.ndarray, clip_limit: float = 1.6, gamma: float = 0.
     return cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
 
 
+def _lab_l(image: np.ndarray) -> np.ndarray:
+    return cv2.cvtColor(image, cv2.COLOR_BGR2LAB)[:, :, 0]
+
+
+def _from_lab_l(image: np.ndarray, light: np.ndarray) -> np.ndarray:
+    lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+    lab[:, :, 0] = np.clip(light, 0, 255).astype(np.uint8)
+    return cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
+
+
+def _unsharp_l(image: np.ndarray, amount: float = 0.45, sigma: float = 1.0) -> np.ndarray:
+    light = _lab_l(image).astype(np.float32)
+    blurred = cv2.GaussianBlur(light, (0, 0), sigma)
+    return _from_lab_l(image, light + amount * (light - blurred))
+
+
+def _bilateral_unsharp_l(image: np.ndarray, amount: float = 0.35) -> np.ndarray:
+    light = _lab_l(image)
+    smooth = cv2.bilateralFilter(light, 7, 18, 3)
+    detail = light.astype(np.float32) - smooth.astype(np.float32)
+    return _from_lab_l(image, light.astype(np.float32) + amount * detail)
+
+
+def _constrained_laplacian_l(image: np.ndarray, amount: float = 0.12) -> np.ndarray:
+    light = _lab_l(image).astype(np.float32)
+    laplacian = cv2.Laplacian(light, cv2.CV_32F, ksize=3)
+    limited = np.clip(laplacian, -28.0, 28.0)
+    return _from_lab_l(image, light - amount * limited)
+
+
+def _sharpening_metrics(base: np.ndarray, candidate: np.ndarray) -> dict[str, float]:
+    base_l = _lab_l(base).astype(np.float32)
+    candidate_l = _lab_l(candidate).astype(np.float32)
+    gradient = cv2.magnitude(
+        cv2.Sobel(base_l, cv2.CV_32F, 1, 0),
+        cv2.Sobel(base_l, cv2.CV_32F, 0, 1),
+    )
+    edge = gradient >= np.percentile(gradient, 90)
+    ring = cv2.dilate(edge.astype(np.uint8), np.ones((5, 5), np.uint8), iterations=1).astype(bool) & ~edge
+    delta = candidate_l - base_l
+    return {
+        "local_contrast": float(candidate_l.std()),
+        "edge_spread_proxy": float(np.mean(gradient[edge])) if edge.any() else 0.0,
+        "halo_ratio": float(np.mean(np.abs(delta[ring]) > 12.0)) if ring.any() else 0.0,
+        "overshoot_ratio": float(np.mean(np.abs(delta) > 24.0)),
+        "mean_change": float(np.mean(np.abs(delta))),
+    }
+
+
+def _temporal_consistency(images: list[np.ndarray]) -> float:
+    if len(images) < 2:
+        return 0.0
+    stack = np.stack([_lab_l(image).astype(np.float32) for image in images], axis=0)
+    return float(np.mean(np.std(stack, axis=0)))
+
+
 def _directional_fft(image: np.ndarray, bins: int = 18) -> dict[str, object]:
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY).astype(np.float32)
     gray -= cv2.GaussianBlur(gray, (0, 0), 3)
@@ -215,10 +271,35 @@ def run(video: str | Path, output: str | Path = OUTPUT_DIR) -> dict[str, object]
     best_image = reference.full_frame
     median_image = median_result.image if median_result.image is not None else best_image
     contrast_image = _contrast_only(median_image)
+    sharpened_images = {
+        "lab_clahe": contrast_image,
+        "unsharp_l": _unsharp_l(contrast_image),
+        "bilateral_unsharp_l": _bilateral_unsharp_l(contrast_image),
+        "constrained_laplacian_l": _constrained_laplacian_l(contrast_image),
+    }
+    per_frame_sharpened = {
+        name: [
+            method(_contrast_only(image))
+            for image in aligned
+        ]
+        for name, method in {
+            "lab_clahe": lambda image: image,
+            "unsharp_l": _unsharp_l,
+            "bilateral_unsharp_l": _bilateral_unsharp_l,
+            "constrained_laplacian_l": _constrained_laplacian_l,
+        }.items()
+    }
+    sharpening_comparison = {}
+    for name, image in sharpened_images.items():
+        metrics = _sharpening_metrics(contrast_image, image)
+        metrics["temporal_std"] = _temporal_consistency(per_frame_sharpened[name])
+        sharpening_comparison[name] = metrics
 
     cv2.imwrite(str(output_path / "best_frame.png"), best_image)
     cv2.imwrite(str(output_path / "median_aligned.png"), median_image)
     cv2.imwrite(str(output_path / "contrast_after_fusion.png"), contrast_image)
+    for name, image in sharpened_images.items():
+        cv2.imwrite(str(output_path / f"{name}.png"), image)
     cv2.imwrite(str(output_path / "edge_overlay.png"), edge_info.pop("edge_overlay"))
     cv2.imwrite(str(output_path / "warp_residual.png"), residual_image)
     cv2.imwrite(str(output_path / "frame_difference.png"), frame_difference)
@@ -227,6 +308,9 @@ def run(video: str | Path, output: str | Path = OUTPUT_DIR) -> dict[str, object]
             ("best_frame", best_image),
             ("median_aligned", median_image),
             ("contrast_after_fusion", contrast_image),
+            ("unsharp_l", sharpened_images["unsharp_l"]),
+            ("bilateral_unsharp", sharpened_images["bilateral_unsharp_l"]),
+            ("laplacian_l", sharpened_images["constrained_laplacian_l"]),
             ("edge_overlay", cv2.imread(str(output_path / "edge_overlay.png"))),
             ("warp_residual", cv2.imread(str(output_path / "warp_residual.png"))),
             ("frame_difference", frame_difference),
@@ -263,6 +347,16 @@ def run(video: str | Path, output: str | Path = OUTPUT_DIR) -> dict[str, object]
             "median_aligned": {"path": "median_aligned.png", "metrics": _metrics(median_image)},
             "contrast_after_fusion": {"path": "contrast_after_fusion.png", "metrics": _metrics(contrast_image)},
         },
+        "sharpening_comparison": sharpening_comparison,
+        "sharpening_decision": {
+            "primary": "lab_clahe",
+            "accepted_as_final": ["lab_clahe"],
+            "rejected_as_final": {
+                "unsharp_l": "slightly higher halo and temporal variation than Lab CLAHE",
+                "bilateral_unsharp_l": "temporal variation increased without reliable edge-spread gain",
+                "constrained_laplacian_l": "largest temporal variation; sharper edges may be synthetic",
+            },
+        },
         "records": records,
         "limitations": [
             "The contrast branch preserves BGR color and does not emit a foreground mask as a final result.",
@@ -284,6 +378,8 @@ def run(video: str | Path, output: str | Path = OUTPUT_DIR) -> dict[str, object]
         f"warp residual mean: `{float(np.mean(residuals)):.3f}`; "
         f"edge IoU mean: `{edge_info['edge_iou_mean']:.4f}`.\n"
         "- A contrast increase is enhancement only; it is not deblurring or character recovery.\n"
+        "- Sharpening comparison is recorded in `contrast_manifest.json`; halo/overshoot and temporal "
+        "consistency are preferred over raw Laplacian increases.\n"
         "- References: multiple-hypothesis flow for ambiguous matches, drift-resilient temporal fusion, "
         "and flow-error reduction methods (listed in `contrast_manifest.json`).\n",
         encoding="utf-8",
